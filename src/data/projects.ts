@@ -18,6 +18,14 @@ export const projects: Project[] = [
     live: 'https://movie-match-flame.vercel.app',
   },
   {
+    name: 'RecipeWizard',
+    description:
+      'iOS app that auto-extracts recipes from TikTok & Instagram Reels using AI. Share a video, Claude AI reads the caption and returns structured ingredients, steps, and cook time — saved instantly to your recipe book.',
+    language: 'Swift',
+    tags: ['Swift', 'iOS', 'Claude AI', 'Google Sign-In'],
+    repo: 'https://github.com/shaiaviv/recipewizard',
+  },
+  {
     name: 'AI-lbum',
     description:
       'Full-stack mobile app for AI-powered photo album generation using facial recognition. Built with Flutter (Dart), Node.js, Firebase, and face-api.js (TensorFlow.js).',
