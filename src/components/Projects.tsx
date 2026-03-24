@@ -4,17 +4,19 @@ import ProjectCard from './ProjectCard'
 
 export default function Projects() {
   return (
-    <section id="projects" className="py-24 px-6">
+    <section id="projects" className="py-28 px-6">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mb-12"
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-14"
         >
-          <h2 className="font-mono text-accent text-sm mb-3">02. Projects</h2>
-          <h3 className="text-3xl font-bold text-[#f0f0f0]">Things I've built</h3>
+          <div className="section-label mb-4">02. Projects</div>
+          <h3 className="text-3xl sm:text-4xl font-bold text-[#f0f0f0] tracking-tight">
+            Things I've built
+          </h3>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -28,13 +30,13 @@ export default function Projects() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3, duration: 0.5 }}
-          className="mt-10 text-center"
+          className="mt-12 text-center"
         >
           <a
             href="https://github.com/shaiaviv"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-muted hover:text-accent transition-colors duration-200"
+            className="animated-underline inline-flex items-center gap-2 text-sm text-muted hover:text-accent transition-colors duration-200"
           >
             View more on GitHub
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

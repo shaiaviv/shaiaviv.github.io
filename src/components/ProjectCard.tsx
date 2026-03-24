@@ -22,18 +22,28 @@ export default function ProjectCard({ project, index }: Props) {
       href={project.repo}
       target="_blank"
       rel="noopener noreferrer"
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
-      className="bg-surface border border-border rounded-lg p-6 flex flex-col hover:border-accent/40 transition-colors duration-200 group cursor-pointer"
+      whileHover={{ y: -6, scale: 1.01 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ delay: index * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="card-glow bg-surface/80 backdrop-blur-sm border border-white/5 rounded-xl p-6 flex flex-col
+        hover:border-accent/30 hover:shadow-[0_8px_32px_rgba(108,99,255,0.15),0_0_0_1px_rgba(108,99,255,0.1)]
+        transition-all duration-300 group cursor-pointer relative overflow-hidden"
     >
-      <div className="flex items-start justify-between mb-4">
-        {/* Folder icon */}
-        <svg className="w-8 h-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-            d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-        </svg>
+      {/* Top gradient accent line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      <div className="flex items-start justify-between mb-5">
+        <motion.div
+          whileHover={{ rotate: 5, scale: 1.1 }}
+          transition={{ type: 'spring', stiffness: 400 }}
+        >
+          <svg className="w-8 h-8 text-accent/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+              d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+          </svg>
+        </motion.div>
         <div className="flex gap-3">
           <a
             href={project.repo}
@@ -65,24 +75,27 @@ export default function ProjectCard({ project, index }: Props) {
         </div>
       </div>
 
-      <h3 className="text-[#f0f0f0] font-semibold text-lg mb-2 group-hover:text-accent transition-colors duration-200">
+      <h3 className="text-[#f0f0f0] font-semibold text-lg mb-2 group-hover:text-accent transition-colors duration-200 tracking-tight">
         {project.name}
       </h3>
-      <p className="text-muted text-sm leading-relaxed flex-1 mb-4">
+      <p className="text-[#888899] text-sm leading-relaxed flex-1 mb-5">
         {project.description}
       </p>
 
       <div className="flex items-center gap-4 mt-auto">
         <div className="flex items-center gap-1.5">
           <span
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: languageColors[project.language] ?? '#888' }}
+            className="w-2.5 h-2.5 rounded-full"
+            style={{
+              backgroundColor: languageColors[project.language] ?? '#888',
+              boxShadow: `0 0 6px ${languageColors[project.language] ?? '#888'}66`,
+            }}
           />
           <span className="font-mono text-xs text-muted">{project.language}</span>
         </div>
         <div className="flex gap-2 flex-wrap">
           {project.tags.map((tag) => (
-            <span key={tag} className="font-mono text-xs text-accent/70 bg-accent/10 px-2 py-0.5 rounded">
+            <span key={tag} className="font-mono text-xs text-accent/80 bg-accent/10 border border-accent/10 px-2 py-0.5 rounded-md">
               {tag}
             </span>
           ))}

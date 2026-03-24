@@ -21,21 +21,23 @@ export default function Navbar() {
     <motion.nav
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.4 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-background/90 backdrop-blur-sm border-b border-border' : ''
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? 'bg-background/70 backdrop-blur-xl border-b border-white/5 shadow-[0_1px_40px_rgba(0,0,0,0.5)]'
+          : ''
       }`}
     >
       <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-        <a href="#" className="font-mono text-sm text-accent font-medium tracking-wide">
+        <a href="#" className="font-mono text-sm text-accent font-medium tracking-wide hover:text-accent/80 transition-colors">
           shai.dev
         </a>
-        <ul className="flex gap-6">
+        <ul className="flex gap-8">
           {links.map((link) => (
             <li key={link.href}>
               <a
                 href={link.href}
-                className="text-sm text-muted hover:text-[#f0f0f0] transition-colors duration-200"
+                className="animated-underline text-sm text-muted hover:text-[#f0f0f0] transition-colors duration-200 tracking-wide"
               >
                 {link.label}
               </a>
