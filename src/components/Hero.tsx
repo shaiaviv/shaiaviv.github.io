@@ -75,6 +75,17 @@ export default function Hero() {
           </motion.a>
         </motion.div>
 
+        <motion.div
+          variants={itemVariants}
+          className="mt-16 flex flex-col items-start"
+        >
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            className="w-px h-10 bg-gradient-to-b from-accent/50 to-transparent"
+          />
+        </motion.div>
+
       </motion.div>
     </section>
   )
