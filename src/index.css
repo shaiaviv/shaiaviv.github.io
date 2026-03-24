@@ -64,109 +64,175 @@
   .card-glow:hover::before {
     opacity: 1;
   }
-
-  .noise-bg::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-  }
 }
 
-/* ─── Background orb keyframes ─── */
+/* ════════════════════════════════════════════
+   BACKGROUND ANIMATIONS
+   ════════════════════════════════════════════ */
+
+/* ─── Orb drift keyframes ─── */
 @keyframes orb-drift-1 {
-  0%   { transform: translate(0px, 0px) scale(1); }
-  25%  { transform: translate(40px, -50px) scale(1.06); }
-  50%  { transform: translate(-30px, 30px) scale(0.94); }
-  75%  { transform: translate(20px, 50px) scale(1.03); }
-  100% { transform: translate(0px, 0px) scale(1); }
+  0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+  20%  { transform: translate(80px, -60px) scale(1.12) rotate(20deg); }
+  50%  { transform: translate(-60px, 50px) scale(0.88) rotate(-15deg); }
+  80%  { transform: translate(50px, 80px) scale(1.08) rotate(10deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); }
 }
 
 @keyframes orb-drift-2 {
-  0%   { transform: translate(0px, 0px) scale(1); }
-  33%  { transform: translate(-60px, 40px) scale(1.08); }
-  66%  { transform: translate(50px, -30px) scale(0.92); }
-  100% { transform: translate(0px, 0px) scale(1); }
+  0%   { transform: translate(0, 0) scale(1); }
+  30%  { transform: translate(-100px, 60px) scale(1.15); }
+  60%  { transform: translate(80px, -80px) scale(0.85); }
+  100% { transform: translate(0, 0) scale(1); }
 }
 
 @keyframes orb-drift-3 {
-  0%   { transform: translate(0px, 0px) scale(1); }
-  50%  { transform: translate(30px, -60px) scale(1.1); }
-  100% { transform: translate(0px, 0px) scale(1); }
+  0%   { transform: translate(-50%, 0) scale(1); }
+  40%  { transform: translate(calc(-50% + 70px), -90px) scale(1.2); }
+  70%  { transform: translate(calc(-50% - 50px), 60px) scale(0.82); }
+  100% { transform: translate(-50%, 0) scale(1); }
 }
 
-@keyframes orb-pulse {
-  0%, 100% { opacity: 0.07; }
-  50%       { opacity: 0.12; }
+@keyframes orb-drift-4 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-80px, -50px) scale(1.18); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* ─── Aurora sweep ─── */
+@keyframes aurora-sweep {
+  0%   { transform: translateX(-60%) skewX(-12deg); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateX(160%) skewX(-12deg); opacity: 0; }
+}
+
+@keyframes aurora-sweep-2 {
+  0%   { transform: translateX(-60%) skewX(8deg); opacity: 0; }
+  20%  { opacity: 0.7; }
+  80%  { opacity: 0.7; }
+  100% { transform: translateX(160%) skewX(8deg); opacity: 0; }
 }
 
 /* ─── Orb elements ─── */
 .bg-orb {
   position: fixed;
   border-radius: 50%;
-  filter: blur(80px);
   pointer-events: none;
   z-index: 0;
 }
 
+/* Top-left — vivid indigo */
 .bg-orb-1 {
-  width: 700px;
-  height: 700px;
-  top: -200px;
-  left: -150px;
-  background: radial-gradient(circle, rgba(108, 99, 255, 0.18) 0%, rgba(108, 99, 255, 0) 70%);
-  animation: orb-drift-1 22s ease-in-out infinite, orb-pulse 8s ease-in-out infinite;
+  width: 900px;
+  height: 900px;
+  top: -300px;
+  left: -200px;
+  background: radial-gradient(circle at 40% 40%,
+    rgba(108, 99, 255, 0.35) 0%,
+    rgba(124, 58, 237, 0.2) 35%,
+    rgba(108, 99, 255, 0) 70%);
+  filter: blur(60px);
+  animation: orb-drift-1 14s ease-in-out infinite;
 }
 
+/* Bottom-right — electric cyan */
 .bg-orb-2 {
-  width: 600px;
-  height: 600px;
-  bottom: -100px;
-  right: -100px;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(56, 189, 248, 0) 70%);
-  animation: orb-drift-2 28s ease-in-out infinite, orb-pulse 10s ease-in-out infinite 3s;
+  width: 750px;
+  height: 750px;
+  bottom: -200px;
+  right: -150px;
+  background: radial-gradient(circle at 55% 55%,
+    rgba(34, 211, 238, 0.28) 0%,
+    rgba(56, 189, 248, 0.18) 40%,
+    rgba(56, 189, 248, 0) 70%);
+  filter: blur(55px);
+  animation: orb-drift-2 18s ease-in-out infinite;
 }
 
+/* Center — soft violet */
 .bg-orb-3 {
-  width: 500px;
-  height: 500px;
-  top: 40%;
+  width: 650px;
+  height: 650px;
+  top: 35%;
   left: 50%;
   transform: translateX(-50%);
-  background: radial-gradient(circle, rgba(167, 139, 250, 0.09) 0%, rgba(167, 139, 250, 0) 70%);
-  animation: orb-drift-3 35s ease-in-out infinite, orb-pulse 12s ease-in-out infinite 6s;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(167, 139, 250, 0.22) 0%,
+    rgba(192, 132, 252, 0.14) 40%,
+    rgba(167, 139, 250, 0) 70%);
+  filter: blur(70px);
+  animation: orb-drift-3 22s ease-in-out infinite;
 }
 
-/* ─── Subtle grid overlay ─── */
+/* Top-right — magenta accent */
+.bg-orb-4 {
+  width: 500px;
+  height: 500px;
+  top: -80px;
+  right: -80px;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(236, 72, 153, 0.18) 0%,
+    rgba(217, 70, 239, 0.12) 40%,
+    rgba(236, 72, 153, 0) 70%);
+  filter: blur(65px);
+  animation: orb-drift-4 16s ease-in-out infinite;
+}
+
+/* ─── Aurora sweep bands ─── */
+.bg-aurora {
+  position: fixed;
+  top: 15%;
+  left: 0;
+  width: 60%;
+  height: 220px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(108, 99, 255, 0.06) 20%,
+    rgba(124, 58, 237, 0.1) 40%,
+    rgba(56, 189, 248, 0.08) 60%,
+    rgba(34, 211, 238, 0.05) 80%,
+    transparent 100%
+  );
+  filter: blur(30px);
+  pointer-events: none;
+  z-index: 0;
+  animation: aurora-sweep 9s ease-in-out infinite;
+}
+
+.bg-aurora-2 {
+  position: fixed;
+  top: 55%;
+  left: 0;
+  width: 50%;
+  height: 160px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(236, 72, 153, 0.05) 25%,
+    rgba(167, 139, 250, 0.09) 50%,
+    rgba(34, 211, 238, 0.06) 75%,
+    transparent 100%
+  );
+  filter: blur(25px);
+  pointer-events: none;
+  z-index: 0;
+  animation: aurora-sweep-2 13s ease-in-out infinite 4s;
+}
+
+/* ─── Subtle dot grid ─── */
 .bg-grid {
   position: fixed;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 60px 60px;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 36px 36px;
   pointer-events: none;
   z-index: 0;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
 }
 
-/* ─── Hover glow underline for nav links ─── */
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-
-.shimmer-text {
-  background: linear-gradient(90deg, #f0f0f0 0%, #a78bfa 50%, #f0f0f0 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmer 4s linear infinite;
-}
-
-/* ─── Animated underline ─── */
+/* ─── Animated underline for nav ─── */
 .animated-underline {
   position: relative;
 }

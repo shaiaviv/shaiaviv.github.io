@@ -75,17 +75,6 @@ export default function Hero() {
           </motion.a>
         </motion.div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          variants={itemVariants}
-          className="mt-20 flex flex-col items-start gap-2"
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-            className="w-px h-8 bg-gradient-to-b from-accent/60 to-transparent"
-          />
-        </motion.div>
       </motion.div>
     </section>
   )
