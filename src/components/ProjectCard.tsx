@@ -18,12 +18,15 @@ const languageColors: Record<string, string> = {
 
 export default function ProjectCard({ project, index }: Props) {
   return (
-    <motion.div
+    <motion.a
+      href={project.repo}
+      target="_blank"
+      rel="noopener noreferrer"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1, duration: 0.5 }}
-      className="bg-surface border border-border rounded-lg p-6 flex flex-col hover:border-accent/40 transition-colors duration-200 group"
+      className="bg-surface border border-border rounded-lg p-6 flex flex-col hover:border-accent/40 transition-colors duration-200 group cursor-pointer"
     >
       <div className="flex items-start justify-between mb-4">
         {/* Folder icon */}
@@ -85,6 +88,6 @@ export default function ProjectCard({ project, index }: Props) {
           ))}
         </div>
       </div>
-    </motion.div>
+    </motion.a>
   )
 }
