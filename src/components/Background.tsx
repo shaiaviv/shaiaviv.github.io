@@ -89,8 +89,8 @@ export default function Background() {
     const onMouseMove = (e: MouseEvent) => { mouseX = e.clientX; mouseY = e.clientY }
     window.addEventListener('mousemove', onMouseMove, { passive: true })
 
-    const MAX_DIST = 120
-    const MOUSE_DIST = 180
+    const MAX_DIST = 130
+    const MOUSE_DIST = 210
     // star-white for the network particles
     const PR = 160, PG = 185, PB = 255
     let frame = 0
@@ -163,9 +163,9 @@ export default function Background() {
         const mdy = particles[i].y - mouseY
         const mdist = Math.sqrt(mdx * mdx + mdy * mdy)
         if (mdist < MOUSE_DIST) {
-          const alpha = (1 - mdist / MOUSE_DIST) * 0.22
-          ctx.strokeStyle = `rgba(${PR},${PG},${PB},${alpha})`
-          ctx.lineWidth = 0.7
+          const alpha = (1 - mdist / MOUSE_DIST) * 0.38
+          ctx.strokeStyle = `rgba(200,225,255,${alpha})`
+          ctx.lineWidth = 0.9
           ctx.beginPath()
           ctx.moveTo(particles[i].x, particles[i].y)
           ctx.lineTo(mouseX, mouseY)
