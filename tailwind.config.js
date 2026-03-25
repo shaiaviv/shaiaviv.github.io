@@ -4,19 +4,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#020a06',
-        surface: '#081208',
-        'surface-2': '#0f1e12',
-        border: '#172e1e',
+        background: '#03040e',
+        surface: '#06081a',
+        'surface-2': '#0c1028',
+        border: '#141830',
         accent: '#00e5a0',
         'accent-hover': '#00cc8f',
         'accent-dim': 'rgba(0, 229, 160, 0.1)',
         cyan: '#00b8d4',
         pink: '#ff4d6d',
         green: '#7fff7a',
-        muted: '#4d7a6a',
-        'text-1': '#edfaf3',
-        'text-2': '#8ab8a0',
+        muted: '#4a5580',
+        'text-1': '#e8eeff',
+        'text-2': '#7a8ab5',
       },
       fontFamily: {
         sans: ['Outfit', 'system-ui', 'sans-serif'],
