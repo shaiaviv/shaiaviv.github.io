@@ -97,10 +97,67 @@ export default function Background() {
       })
     }
 
+    // ── nebula offscreen cache ─────────────────────────
+    // Nebulas are static, so we render them once onto an offscreen canvas
+    // and blit that bitmap each frame — zero per-frame gradient cost.
+    const nebulaCanvas = document.createElement('canvas')
+    const nc = nebulaCanvas.getContext('2d')!
+
+    type Nebula = {
+      cx: number; cy: number   // centre
+      rx: number; ry: number   // radii (elliptical feel via two overlapping gradients)
+      r: number; g: number; b: number  // base color
+      opacity: number
+    }
+
+    const NEBULA_PALETTE: [number, number, number][] = [
+      [110,  55, 210],  // violet
+      [ 40,  80, 220],  // deep blue
+      [  0, 140, 200],  // cerulean
+      [180,  35, 120],  // magenta-rose
+      [ 50, 160, 140],  // teal-green
+      [200,  80,  40],  // warm amber (rare, distant stars)
+      [ 90,  40, 180],  // indigo
+    ]
+
+    const paintNebulas = () => {
+      nebulaCanvas.width  = canvas.width
+      nebulaCanvas.height = canvas.height
+      nc.clearRect(0, 0, nebulaCanvas.width, nebulaCanvas.height)
+
+      const count = 7 + Math.floor(Math.random() * 4)  // 7-10 nebulas
+      for (let i = 0; i < count; i++) {
+        const cx = Math.random() * nebulaCanvas.width
+        const cy = Math.random() * nebulaCanvas.height
+        // Each nebula is 2 overlapping lobes for an organic, irregular shape
+        for (let lobe = 0; lobe < 2; lobe++) {
+          const [r, g, b] = NEBULA_PALETTE[Math.floor(Math.random() * NEBULA_PALETTE.length)]
+          const radius = 120 + Math.random() * 280  // 120–400 px
+          const ox = (Math.random() - 0.5) * radius * 0.6  // lobe offset
+          const oy = (Math.random() - 0.5) * radius * 0.6
+          const opacity = 0.028 + Math.random() * 0.042  // 0.028–0.07 (very subtle)
+
+          const grd = nc.createRadialGradient(
+            cx + ox, cy + oy, 0,
+            cx + ox, cy + oy, radius,
+          )
+          grd.addColorStop(0,   `rgba(${r},${g},${b},${opacity.toFixed(3)})`)
+          grd.addColorStop(0.35,`rgba(${r},${g},${b},${(opacity * 0.5).toFixed(3)})`)
+          grd.addColorStop(1,   `rgba(${r},${g},${b},0)`)
+
+          nc.beginPath()
+          nc.arc(cx + ox, cy + oy, radius, 0, Math.PI * 2)
+          nc.fillStyle = grd
+          nc.fill()
+        }
+      }
+    }
+
     const resize = () => {
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
       initStars()
+      paintNebulas()
     }
     // resize FIRST so canvas.width/height are correct before particles are placed
     resize()
@@ -131,6 +188,9 @@ export default function Background() {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       frame++
+
+      // ── blit pre-rendered nebulas (single texture draw — no per-frame gradients) ──
+      ctx.drawImage(nebulaCanvas, 0, 0)
 
       // ── draw static starfield ──
       for (const s of bgStars) {
