@@ -212,8 +212,8 @@ export default function Hero() {
           style={{ y: bioY }}
           className="text-muted text-lg max-w-lg mb-10 leading-relaxed"
         >
-          I ship real-time web apps, mobile apps, and AI-powered tools — from idea to
-          production. Bar-Ilan University CS grad.
+          AI-native engineer with a product mindset. I build real-time web apps,
+          mobile apps, and AI-powered tools end-to-end — from idea to production.
         </motion.p>
 
         {/* Stats */}
