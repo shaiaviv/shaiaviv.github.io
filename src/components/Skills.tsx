@@ -1,5 +1,4 @@
-import { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import RevealText from './RevealText'
 
 const skillsRow1 = [
@@ -37,27 +36,23 @@ export default function Skills() {
   const doubled1 = [...skillsRow1, ...skillsRow1, ...skillsRow1, ...skillsRow1]
   const doubled2 = [...skillsRow2, ...skillsRow2, ...skillsRow2, ...skillsRow2]
 
-  const sectionRef = useRef<HTMLElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start end', 'end start'],
-  })
-  // Drifts horizontally as section scrolls — code symbol feels like it's floating in a separate plane
-  const decorX = useTransform(scrollYProgress, [0, 1], [-120, 120])
-  const decorOpacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 0.045, 0.045, 0])
-
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    <section id="skills" ref={sectionRef as any} className="py-32 overflow-hidden relative">
-      {/* Horizontal parallax watermark — static wrapper centers the text,
-          only the text itself drifts so it slides smoothly through the section */}
+    <section id="skills" className="py-32 overflow-hidden relative">
+      {/* Time-based slow drift — always visible regardless of scroll speed */}
       <div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
+        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
         aria-hidden="true"
       >
         <motion.span
-          className="font-black font-mono text-accent whitespace-nowrap"
-          style={{ fontSize: 'clamp(8rem, 22vw, 18rem)', letterSpacing: '-0.04em', x: decorX, opacity: decorOpacity }}
+          className="font-black font-mono whitespace-nowrap"
+          style={{
+            fontSize: 'clamp(8rem, 22vw, 18rem)',
+            letterSpacing: '-0.04em',
+            color: 'transparent',
+            WebkitTextStroke: '1px rgba(0,229,160,0.18)',
+          }}
+          animate={{ x: [-320, 320] }}
+          transition={{ duration: 14, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
         >
           {'</>'}
         </motion.span>
