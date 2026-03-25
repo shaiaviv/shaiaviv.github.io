@@ -1,10 +1,17 @@
 import { useEffect, useRef } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
 
-// Emerald accent RGB components
 const R = 0, G = 229, B = 160
 
 export default function Background() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  // Scroll-driven parallax for the ambient blobs
+  // Blobs are fixed on screen — transforming them makes them drift
+  // at a different rate than the content, adding a sense of depth
+  const { scrollY } = useScroll()
+  const blob1Y = useTransform(scrollY, [0, 2000], [0, -180])
+  const blob2Y = useTransform(scrollY, [0, 2000], [0, 120])
 
   useEffect(() => {
     const canvas = canvasRef.current!
@@ -38,13 +45,11 @@ export default function Background() {
 
     const MAX_DIST = 130
     const MOUSE_DIST = 190
-
     let raf: number
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      // Move particles
       for (const p of particles) {
         p.x += p.vx
         p.y += p.vy
@@ -52,7 +57,6 @@ export default function Background() {
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1
       }
 
-      // Particle-to-particle connections
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x
@@ -69,7 +73,6 @@ export default function Background() {
           }
         }
 
-        // Particle-to-mouse connections
         const mdx = particles[i].x - mouseX
         const mdy = particles[i].y - mouseY
         const mdist = Math.sqrt(mdx * mdx + mdy * mdy)
@@ -84,7 +87,6 @@ export default function Background() {
         }
       }
 
-      // Draw particles
       for (const p of particles) {
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
@@ -106,15 +108,10 @@ export default function Background() {
 
   return (
     <>
-      {/* Canvas constellation */}
-      <canvas
-        ref={canvasRef}
-        className="fixed inset-0 z-0 pointer-events-none"
-        aria-hidden="true"
-      />
+      <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" aria-hidden="true" />
 
-      {/* Ambient glow blobs */}
-      <div
+      {/* Top-left blob — drifts up on scroll (feels far/slow) */}
+      <motion.div
         className="fixed pointer-events-none z-0"
         style={{
           top: '-20%', left: '-10%',
@@ -122,9 +119,12 @@ export default function Background() {
           borderRadius: '50%',
           background: `radial-gradient(circle, rgba(${R},${G},${B},0.12) 0%, rgba(${R},${G},${B},0.04) 40%, transparent 70%)`,
           filter: 'blur(60px)',
+          y: blob1Y,
         }}
       />
-      <div
+
+      {/* Bottom-right blob — drifts down on scroll (opposite = depth) */}
+      <motion.div
         className="fixed pointer-events-none z-0"
         style={{
           bottom: '-15%', right: '-10%',
@@ -132,10 +132,10 @@ export default function Background() {
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(0,184,212,0.1) 0%, rgba(0,184,212,0.04) 40%, transparent 70%)',
           filter: 'blur(60px)',
+          y: blob2Y,
         }}
       />
 
-      {/* Radial vignette — keeps edges darker */}
       <div
         className="fixed inset-0 z-0 pointer-events-none"
         style={{
@@ -143,7 +143,6 @@ export default function Background() {
         }}
       />
 
-      {/* Noise grain */}
       <div className="noise-overlay" aria-hidden="true" />
     </>
   )

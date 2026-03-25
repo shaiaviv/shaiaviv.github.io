@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { motion, useMotionValue, useSpring } from 'framer-motion'
+import { motion, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
 import { useTextScramble } from '../hooks/useTextScramble'
 import { useTypewriter } from '../hooks/useTypewriter'
 
@@ -16,18 +16,14 @@ const containerVariants = {
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
 }
 
 function MagneticButton({
-  href,
-  children,
-  primary,
+  href, children, primary,
 }: {
-  href: string
-  children: React.ReactNode
-  primary?: boolean
+  href: string; children: React.ReactNode; primary?: boolean
 }) {
   const ref = useRef<HTMLAnchorElement>(null)
   const x = useMotionValue(0)
@@ -62,21 +58,33 @@ function MagneticButton({
 }
 
 export default function Hero() {
-  // Scramble the name on load
   const scrambledName = useTextScramble('Shai Aviv', 400)
-  // Typewriter for the role
-  const { text: role, isTyping } = useTypewriter(ROLES, { initialDelay: 1600 })
+  const { text: role } = useTypewriter(ROLES, { initialDelay: 1600 })
+
+  // Scroll-driven parallax — each layer moves at a different rate,
+  // creating the illusion of depth as the user scrolls away
+  const { scrollY } = useScroll()
+  const badgeY    = useTransform(scrollY, [0, 600], [0, -18])
+  const nameY     = useTransform(scrollY, [0, 600], [0, -75])
+  const taglineY  = useTransform(scrollY, [0, 600], [0, -55])
+  const bioY      = useTransform(scrollY, [0, 600], [0, -38])
+  const ctaY      = useTransform(scrollY, [0, 600], [0, -22])
+  const heroOpacity = useTransform(scrollY, [0, 520], [1, 0])
+  const heroScale   = useTransform(scrollY, [0, 600], [1, 0.96])
 
   return (
-    <section className="min-h-screen flex items-center justify-center px-6 pt-20">
+    <motion.section
+      className="min-h-screen flex items-center justify-center px-6 pt-20"
+      style={{ opacity: heroOpacity, scale: heroScale }}
+    >
       <motion.div
         className="max-w-5xl w-full"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Availability badge */}
-        <motion.div variants={itemVariants} className="mb-8">
+        {/* Badge — fastest parallax layer (closest) */}
+        <motion.div variants={itemVariants} style={{ y: badgeY }} className="mb-8">
           <span className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-mono font-medium text-accent bg-accent/10 border border-accent/20">
             <span className="relative flex h-2 w-2">
               <span className="pulse-ring absolute inline-flex h-full w-full rounded-full bg-accent opacity-60" />
@@ -86,8 +94,8 @@ export default function Hero() {
           </span>
         </motion.div>
 
-        {/* Scrambled name */}
-        <motion.div variants={itemVariants}>
+        {/* Name — large, moves most (feels closest) */}
+        <motion.div variants={itemVariants} style={{ y: nameY }}>
           <h1
             className="font-black tracking-tight leading-none mb-3 font-mono"
             style={{ fontSize: 'clamp(3rem, 9.5vw, 7rem)' }}
@@ -107,7 +115,7 @@ export default function Hero() {
         </motion.div>
 
         {/* Typewriter role */}
-        <motion.div variants={itemVariants} className="mb-4 h-10 flex items-center">
+        <motion.div variants={itemVariants} style={{ y: taglineY }} className="mb-4 h-10 flex items-center">
           <span className="text-xl sm:text-2xl font-semibold text-text-2 tracking-tight font-mono">
             {role || '\u00A0'}
             <span className={`ml-0.5 text-accent cursor-blink ${role ? '' : 'opacity-0'}`}>|</span>
@@ -117,6 +125,7 @@ export default function Hero() {
         {/* Bio */}
         <motion.p
           variants={itemVariants}
+          style={{ y: bioY }}
           className="text-muted text-lg max-w-lg mb-10 leading-relaxed"
         >
           I ship real-time web apps, mobile apps, and AI-powered tools — from idea to
@@ -124,7 +133,7 @@ export default function Hero() {
         </motion.p>
 
         {/* Stats */}
-        <motion.div variants={itemVariants} className="flex flex-wrap gap-8 mb-10">
+        <motion.div variants={itemVariants} style={{ y: ctaY }} className="flex flex-wrap gap-8 mb-10">
           {[
             { value: '5+', label: 'Projects shipped' },
             { value: '87.5', label: 'University GPA' },
@@ -138,17 +147,13 @@ export default function Hero() {
         </motion.div>
 
         {/* CTAs */}
-        <motion.div variants={itemVariants} className="flex flex-wrap gap-4 mb-16">
-          <MagneticButton href="#projects" primary>
-            View my projects →
-          </MagneticButton>
-          <MagneticButton href="#contact">
-            Get in touch
-          </MagneticButton>
+        <motion.div variants={itemVariants} style={{ y: ctaY }} className="flex flex-wrap gap-4 mb-16">
+          <MagneticButton href="#projects" primary>View my projects →</MagneticButton>
+          <MagneticButton href="#contact">Get in touch</MagneticButton>
         </motion.div>
 
         {/* Scroll indicator */}
-        <motion.div variants={itemVariants} className="flex items-center gap-3">
+        <motion.div variants={itemVariants} style={{ y: ctaY }} className="flex items-center gap-3">
           <div className="w-px h-12 overflow-hidden">
             <div
               className="w-full h-full scroll-indicator-line"
@@ -158,6 +163,6 @@ export default function Hero() {
           <span className="font-mono text-xs text-muted tracking-[0.2em] uppercase">Scroll</span>
         </motion.div>
       </motion.div>
-    </section>
+    </motion.section>
   )
 }

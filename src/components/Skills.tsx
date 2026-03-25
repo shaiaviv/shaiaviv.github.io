@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import RevealText from './RevealText'
 
 const skillsRow1 = [
   { name: 'JavaScript', icon: '⚡' },
@@ -44,12 +45,20 @@ export default function Skills() {
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="section-label mb-6">Skills</div>
+          <motion.div
+            initial={{ opacity: 0, x: -16 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="section-label mb-6"
+          >
+            Skills
+          </motion.div>
           <h3
             className="font-black text-text-1 tracking-tight leading-tight"
             style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)' }}
           >
-            Technologies I work with
+            <RevealText>Technologies I work with</RevealText>
           </h3>
           <p className="text-muted text-lg mt-3 max-w-md">
             The stack I reach for when shipping products.

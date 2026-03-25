@@ -1,5 +1,6 @@
 import { useRef } from 'react'
-import { motion, useMotionValue, useSpring } from 'framer-motion'
+import { motion, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
+import RevealText from './RevealText'
 
 function MagneticLink({
   href, children, primary, external,
@@ -41,10 +42,22 @@ function MagneticLink({
 }
 
 export default function Contact() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  })
+  // Watermark drifts upward slower than the page — creates depth
+  const watermarkY = useTransform(scrollYProgress, [0, 1], [80, -80])
+
   return (
-    <section id="contact" className="py-36 px-6 relative overflow-hidden">
-      {/* Watermark */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none" aria-hidden="true">
+    <section id="contact" ref={sectionRef} className="py-36 px-6 relative overflow-hidden">
+      {/* Watermark with parallax */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+        style={{ y: watermarkY }}
+        aria-hidden="true"
+      >
         <span
           className="font-black tracking-tighter leading-none"
           style={{
@@ -55,7 +68,7 @@ export default function Contact() {
         >
           HELLO
         </span>
-      </div>
+      </motion.div>
 
       <div className="max-w-5xl mx-auto relative z-10">
         <motion.div
@@ -68,12 +81,14 @@ export default function Contact() {
           <div className="section-label justify-center mb-8">Contact</div>
 
           <h3
-            className="font-black text-text-1 tracking-tight leading-none mb-6"
+            className="font-black text-text-1 tracking-tight leading-tight mb-6"
             style={{ fontSize: 'clamp(2.5rem, 7vw, 4.5rem)' }}
           >
-            Let's build
+            <RevealText>Let's build</RevealText>
             <br />
-            <span className="text-gradient">something great.</span>
+            <span className="text-gradient">
+              <RevealText delay={0.15}>something great.</RevealText>
+            </span>
           </h3>
 
           <p className="text-text-2 mb-12 leading-relaxed text-lg max-w-md mx-auto">
