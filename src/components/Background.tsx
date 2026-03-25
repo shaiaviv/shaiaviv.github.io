@@ -41,17 +41,6 @@ export default function Background() {
       }))
     }
 
-    // ── moving particles (constellation network) ──────
-    const N = window.innerWidth < 768 ? 40 : 68
-    type Particle = { x: number; y: number; vx: number; vy: number; size: number }
-    const particles: Particle[] = Array.from({ length: N }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.18,
-      vy: (Math.random() - 0.5) * 0.18,
-      size: Math.random() * 1.1 + 0.3,
-    }))
-
     // ── shooting stars ────────────────────────────────
     type ShootingStar = {
       x: number; y: number
@@ -63,8 +52,7 @@ export default function Background() {
     let nextShoot = 200 + Math.random() * 280  // frames until first one
 
     const spawnShooter = () => {
-      // Start from upper-left region, travel down-right at varying angles
-      const angle = 0.3 + Math.random() * 0.45   // ~17°–43° below horizontal
+      const angle = 0.3 + Math.random() * 0.45
       shooters.push({
         x: Math.random() * canvas.width * 0.65,
         y: Math.random() * canvas.height * 0.45,
@@ -82,7 +70,19 @@ export default function Background() {
       canvas.height = window.innerHeight
       initStars()
     }
+    // resize FIRST so canvas.width/height are correct before particles are placed
     resize()
+
+    // ── moving particles — initialized AFTER resize so positions use full viewport ──
+    const N = window.innerWidth < 768 ? 40 : 68
+    type Particle = { x: number; y: number; vx: number; vy: number; size: number }
+    const particles: Particle[] = Array.from({ length: N }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.18,
+      vy: (Math.random() - 0.5) * 0.18,
+      size: Math.random() * 1.1 + 0.3,
+    }))
     window.addEventListener('resize', resize, { passive: true })
 
     let mouseX = -1000, mouseY = -1000
