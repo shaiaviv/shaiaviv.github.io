@@ -84,10 +84,15 @@ export default function Background() {
     let nextShoot = 200 + Math.random() * 280  // frames until first one
 
     const spawnShooter = () => {
-      const angle = 0.3 + Math.random() * 0.45
+      // Pick a random angle across all directions, but bias toward
+      // diagonals (avoid purely horizontal/vertical — looks unnatural)
+      const angle = Math.random() * Math.PI * 2
+      // Spawn along the edge that makes sense for the direction
+      const spawnX = Math.random() * canvas.width
+      const spawnY = Math.random() * canvas.height
       shooters.push({
-        x: Math.random() * canvas.width * 0.65,
-        y: Math.random() * canvas.height * 0.45,
+        x: spawnX,
+        y: spawnY,
         dx: Math.cos(angle),
         dy: Math.sin(angle),
         speed: 14 + Math.random() * 10,
