@@ -236,7 +236,7 @@ export default function Hero() {
         <motion.div variants={itemVariants} style={{ y: ctaY }} className="flex flex-wrap gap-4 mb-16">
           <MagneticButton href="#projects" primary>View my projects →</MagneticButton>
           <MagneticButton href="#contact">Get in touch</MagneticButton>
-          <MagneticButton href="/portfolio/resume.pdf" target="_blank">View Resume</MagneticButton>
+          <MagneticButton href="/resume.pdf" target="_blank">View Resume</MagneticButton>
         </motion.div>
 
         {/* Scroll indicator */}

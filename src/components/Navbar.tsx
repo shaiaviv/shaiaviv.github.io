@@ -77,7 +77,7 @@ export default function Navbar() {
           })}
           <li>
             <a
-              href="/portfolio/resume.pdf"
+              href="/resume.pdf"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm font-mono font-medium text-accent border border-accent/30 hover:border-accent/70 hover:bg-accent/8 px-3 py-1.5 rounded-lg transition-all duration-200"
