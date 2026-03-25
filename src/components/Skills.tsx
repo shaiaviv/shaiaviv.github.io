@@ -37,26 +37,7 @@ export default function Skills() {
   const doubled2 = [...skillsRow2, ...skillsRow2, ...skillsRow2, ...skillsRow2]
 
   return (
-    <section id="skills" className="py-32 overflow-hidden relative">
-      {/* Time-based slow drift — always visible regardless of scroll speed */}
-      <div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-        aria-hidden="true"
-      >
-        <motion.span
-          className="font-black font-mono whitespace-nowrap"
-          style={{
-            fontSize: 'clamp(8rem, 22vw, 18rem)',
-            letterSpacing: '-0.04em',
-            color: 'transparent',
-            WebkitTextStroke: '1px rgba(0,229,160,0.18)',
-          }}
-          animate={{ x: [-320, 320] }}
-          transition={{ duration: 14, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
-        >
-          {'</>'}
-        </motion.span>
-      </div>
+    <section id="skills" className="py-32 overflow-hidden">
 
       <div className="max-w-5xl mx-auto px-6 mb-14 relative z-10">
         <motion.div
