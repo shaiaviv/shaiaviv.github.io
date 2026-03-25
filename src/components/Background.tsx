@@ -26,19 +26,51 @@ export default function Background() {
     const ctx = canvas.getContext('2d')!
 
     // ── static starfield ──────────────────────────────
-    type BgStar = { x: number; y: number; r: number; base: number; phase: number; spd: number }
+    // Stars follow a real magnitude distribution: mostly dim, a few brilliant
+    type BgStar = {
+      x: number; y: number; r: number; base: number
+      phase: number; spd: number
+      bright: boolean   // true → draw atmospheric glow halo
+      glowR: number     // pre-computed glow radius
+    }
     let bgStars: BgStar[] = []
 
     const initStars = () => {
-      const count = Math.floor((canvas.width * canvas.height) / 6000)
-      bgStars = Array.from({ length: count }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        r: Math.random() * 0.85 + 0.15,
-        base: Math.random() * 0.55 + 0.15,
-        phase: Math.random() * Math.PI * 2,
-        spd: Math.random() * 0.018 + 0.004,
-      }))
+      const count = Math.floor((canvas.width * canvas.height) / 5200)
+      bgStars = Array.from({ length: count }, () => {
+        const roll = Math.random()
+        let r: number, base: number, bright: boolean, glowR: number
+        if (roll < 0.65) {
+          // dim  (~65%) — faint background wash
+          r     = Math.random() * 0.3 + 0.1
+          base  = Math.random() * 0.18 + 0.07
+          bright = false; glowR = 0
+        } else if (roll < 0.90) {
+          // medium (~25%) — clearly visible
+          r     = Math.random() * 0.35 + 0.35
+          base  = Math.random() * 0.25 + 0.30
+          bright = false; glowR = 0
+        } else if (roll < 0.98) {
+          // bright (~8%) — prominent, slight glow
+          r     = Math.random() * 0.45 + 0.65
+          base  = Math.random() * 0.20 + 0.60
+          bright = true
+          glowR = r * 4.5
+        } else {
+          // very bright (~2%) — standout stars (Sirius-class)
+          r     = Math.random() * 0.5 + 1.1
+          base  = Math.random() * 0.10 + 0.90
+          bright = true
+          glowR = r * 6
+        }
+        return {
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r, base, bright, glowR,
+          phase: Math.random() * Math.PI * 2,
+          spd: Math.random() * 0.012 + 0.003,
+        }
+      })
     }
 
     // ── shooting stars ────────────────────────────────
@@ -103,9 +135,24 @@ export default function Background() {
       // ── draw static starfield ──
       for (const s of bgStars) {
         const twinkle = 0.7 + 0.3 * Math.sin(frame * s.spd + s.phase)
+        const alpha = s.base * twinkle
+
+        // Bright stars: draw atmospheric glow halo first (underneath the point)
+        if (s.bright && s.glowR > 0) {
+          const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.glowR)
+          grd.addColorStop(0,   `rgba(200,220,255,${(alpha * 0.55).toFixed(3)})`)
+          grd.addColorStop(0.4, `rgba(180,210,255,${(alpha * 0.18).toFixed(3)})`)
+          grd.addColorStop(1,   'rgba(160,200,255,0)')
+          ctx.beginPath()
+          ctx.arc(s.x, s.y, s.glowR, 0, Math.PI * 2)
+          ctx.fillStyle = grd
+          ctx.fill()
+        }
+
+        // Star point
         ctx.beginPath()
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(255,255,255,${(s.base * twinkle).toFixed(3)})`
+        ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(3)})`
         ctx.fill()
       }
 
