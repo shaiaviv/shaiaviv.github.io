@@ -59,19 +59,16 @@ export default function About() {
               className="flex-1 space-y-5"
             >
               <p className="text-text-2 leading-relaxed text-[1.075rem]">
-                Computer Science graduate (GPA: 87.5, Bar-Ilan University) with a product
-                mindset and an eagerness to learn new technologies, patterns, and systems.
-                Driven by a desire to build products end-to-end.
+                AI-native software engineer with a product mindset and a B.Sc. in Computer
+                Science from Bar-Ilan University (GPA: 87.5).
               </p>
               <p className="text-text-2 leading-relaxed text-[1.075rem]">
-                Experienced across the full stack — React, Node.js, WebSockets, REST APIs —
-                with multiple deployed, real-world projects. I see AI as a core part of
-                engineering, not a layer on top: embedded in the workflow, the tooling,
-                and the products themselves.
+                Driven by an eagerness to learn new technologies, patterns, and systems,
+                with a desire to build products end-to-end.
               </p>
               <p className="text-text-2 leading-relaxed text-[1.075rem]">
-                Previously a Network Process Support Specialist in the Mamram Unit, where I
-                specialized in computer networks and completed a Cyber Warfare course.
+                Sees AI as a core part of engineering, not a layer on top — embedded in
+                the workflow, the tooling, and the products themselves.
               </p>
 
               <div className="flex flex-wrap gap-2 pt-2">
