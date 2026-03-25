@@ -6,7 +6,7 @@ import { useTypewriter } from '../hooks/useTypewriter'
 const ROLES = [
   'Full-Stack Developer',
   'AI-Native Builder',
-  'Mobile App Creator',
+  'Product-Minded Engineer',
   'CS Graduate (GPA 87.5)',
 ]
 
