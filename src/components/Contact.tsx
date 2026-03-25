@@ -49,9 +49,11 @@ export default function Contact() {
   })
   // Watermark drifts upward, rotates, and scales as section scrolls —
   // three simultaneous transforms on one element create compelling motion depth
-  const watermarkY      = useTransform(scrollYProgress, [0, 1], [80, -80])
-  const watermarkRotate = useTransform(scrollYProgress, [0, 1], [-5, 5])
-  const watermarkScale  = useTransform(scrollYProgress, [0.1, 0.5, 0.9], [0.82, 1, 1.14])
+  // Contact is the last section — scrollYProgress tops out ~0.55 before the page ends,
+  // so map the animation into the reachable [0, 0.6] range and use larger values
+  const watermarkY      = useTransform(scrollYProgress, [0, 0.6], [100, -60])
+  const watermarkRotate = useTransform(scrollYProgress, [0, 0.6], [-14, 8])
+  const watermarkScale  = useTransform(scrollYProgress, [0, 0.3, 0.6], [0.72, 1.0, 1.18])
 
   return (
     <section id="contact" ref={sectionRef} className="py-36 px-6 relative overflow-hidden">
