@@ -24,7 +24,7 @@ const skillsRow2 = [
 
 function SkillBadge({ name, icon }: { name: string; icon: string }) {
   return (
-    <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl glass-card border border-accent/[0.07] flex-shrink-0 select-none">
+    <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl glass-card border border-accent/[0.07] flex-shrink-0 select-none mr-3">
       <span className="text-base leading-none">{icon}</span>
       <span className="text-sm font-medium text-text-2 whitespace-nowrap">{name}</span>
     </div>
@@ -65,12 +65,12 @@ export default function Skills() {
         className="space-y-3"
       >
         <div className="marquee-track">
-          <div className="marquee-row marquee-row-left gap-3 px-3">
+          <div className="marquee-row marquee-row-left">
             {doubled1.map((skill, i) => <SkillBadge key={`r1-${i}`} {...skill} />)}
           </div>
         </div>
         <div className="marquee-track">
-          <div className="marquee-row marquee-row-right gap-3 px-3">
+          <div className="marquee-row marquee-row-right">
             {doubled2.map((skill, i) => <SkillBadge key={`r2-${i}`} {...skill} />)}
           </div>
         </div>
