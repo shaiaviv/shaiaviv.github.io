@@ -223,7 +223,6 @@ export default function Hero() {
         {/* Stats */}
         <motion.div variants={itemVariants} style={{ y: ctaY }} className="flex flex-wrap gap-8 mb-10">
           {[
-            { value: '5+', label: 'Projects shipped' },
             { value: '87.5', label: 'University GPA' },
             { value: 'BIU', label: 'Bar-Ilan University' },
           ].map(({ value, label }) => (
