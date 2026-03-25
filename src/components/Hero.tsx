@@ -4,10 +4,11 @@ import { useTextScramble } from '../hooks/useTextScramble'
 import { useTypewriter } from '../hooks/useTypewriter'
 
 const ROLES = [
-  'Full-Stack Developer',
-  'AI-Native Builder',
-  'Product-Minded Engineer',
-  'CS Graduate (GPA 87.5)',
+  'Full-Stack Developer',       // technical baseline
+  'AI-Native Engineer',         // AI-first identity
+  'Product-Minded Builder',     // product angle
+  'Perpetual Learner',          // learning/growth (from resume summary)
+  'Idea → Production',          // end-to-end ownership
 ]
 
 const containerVariants = {
