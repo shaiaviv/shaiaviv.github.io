@@ -103,26 +103,35 @@ export default function Background() {
     }
 
     // ── nebula offscreen cache ─────────────────────────
-    // Nebulas are static, so we render them once onto an offscreen canvas
-    // and blit that bitmap each frame — zero per-frame gradient cost.
+    // Rendered once, blitted each frame. Uses 'screen' composite mode so
+    // overlapping color layers add like real light (teal + pink → near-white core).
     const nebulaCanvas = document.createElement('canvas')
     const nc = nebulaCanvas.getContext('2d')!
 
-    type Nebula = {
-      cx: number; cy: number   // centre
-      rx: number; ry: number   // radii (elliptical feel via two overlapping gradients)
-      r: number; g: number; b: number  // base color
-      opacity: number
+    // Real nebula types: each has a hot inner color (ionized oxygen = teal/blue)
+    // and a cool outer color (hydrogen = pink/red). Authentic Hubble palette.
+    type NebulaType = {
+      inner: [number,number,number]   // hot core — oxygen/ionized gas
+      outer: [number,number,number]   // cool rim — hydrogen/dust
+      accent?: [number,number,number] // optional third emission layer
     }
-
-    const NEBULA_PALETTE: [number, number, number][] = [
-      [110,  55, 210],  // violet
-      [ 40,  80, 220],  // deep blue
-      [  0, 140, 200],  // cerulean
-      [180,  35, 120],  // magenta-rose
-      [ 50, 160, 140],  // teal-green
-      [200,  80,  40],  // warm amber (rare, distant stars)
-      [ 90,  40, 180],  // indigo
+    const NEBULA_TYPES: NebulaType[] = [
+      // Orion-style: teal core → pink-magenta → dusty orange rim
+      { inner: [60,190,210],  outer: [220,80,130],  accent: [200,100,50] },
+      // Pillars of Creation (Hubble SHO): teal bg → gold pillars
+      { inner: [30,170,160],  outer: [230,160,50],  accent: [180,60,30] },
+      // Rosette: bright pink ring with blue cavity
+      { inner: [80,120,220],  outer: [220,60,90],   accent: [200,40,70] },
+      // Helix / Eye of God: vivid blue → teal → orange outer ring
+      { inner: [80,160,255],  outer: [220,100,40] },
+      // Lagoon: magenta cloud with teal highlights
+      { inner: [160,220,240], outer: [210,70,120],  accent: [180,50,80] },
+      // Veil supernova remnant: red hydrogen + blue oxygen filaments
+      { inner: [60,160,220],  outer: [220,70,50],   accent: [160,80,200] },
+      // Deep purple / indigo cloud
+      { inner: [100,60,220],  outer: [180,40,120] },
+      // Warm amber stellar nursery
+      { inner: [255,190,60],  outer: [200,60,40] },
     ]
 
     const paintNebulas = () => {
@@ -130,32 +139,61 @@ export default function Background() {
       nebulaCanvas.height = canvas.height
       nc.clearRect(0, 0, nebulaCanvas.width, nebulaCanvas.height)
 
-      const count = 7 + Math.floor(Math.random() * 4)  // 7-10 nebulas
+      // 'screen' composite: colors add like light — overlapping layers brighten naturally
+      nc.globalCompositeOperation = 'screen'
+
+      const count = 6 + Math.floor(Math.random() * 4)  // 6-9 nebulas
       for (let i = 0; i < count; i++) {
+        const type = NEBULA_TYPES[Math.floor(Math.random() * NEBULA_TYPES.length)]
         const cx = Math.random() * nebulaCanvas.width
         const cy = Math.random() * nebulaCanvas.height
-        // Each nebula is 2 overlapping lobes for an organic, irregular shape
-        for (let lobe = 0; lobe < 2; lobe++) {
-          const [r, g, b] = NEBULA_PALETTE[Math.floor(Math.random() * NEBULA_PALETTE.length)]
-          const radius = 120 + Math.random() * 280  // 120–400 px
-          const ox = (Math.random() - 0.5) * radius * 0.6  // lobe offset
-          const oy = (Math.random() - 0.5) * radius * 0.6
-          const opacity = 0.028 + Math.random() * 0.042  // 0.028–0.07 (very subtle)
+        const baseR = 160 + Math.random() * 320   // 160-480 px
 
-          const grd = nc.createRadialGradient(
-            cx + ox, cy + oy, 0,
-            cx + ox, cy + oy, radius,
-          )
-          grd.addColorStop(0,   `rgba(${r},${g},${b},${opacity.toFixed(3)})`)
-          grd.addColorStop(0.35,`rgba(${r},${g},${b},${(opacity * 0.5).toFixed(3)})`)
+        // Layer 1 — outer cool cloud (hydrogen glow, largest, faintest)
+        {
+          const [r,g,b] = type.outer
+          const radius = baseR * (1.0 + Math.random() * 0.5)
+          const ox = (Math.random() - 0.5) * 80
+          const oy = (Math.random() - 0.5) * 80
+          const op = 0.055 + Math.random() * 0.055
+          const grd = nc.createRadialGradient(cx+ox, cy+oy, 0, cx+ox, cy+oy, radius)
+          grd.addColorStop(0,   `rgba(${r},${g},${b},${op.toFixed(3)})`)
+          grd.addColorStop(0.5, `rgba(${r},${g},${b},${(op*0.4).toFixed(3)})`)
           grd.addColorStop(1,   `rgba(${r},${g},${b},0)`)
+          nc.beginPath(); nc.arc(cx+ox, cy+oy, radius, 0, Math.PI*2)
+          nc.fillStyle = grd; nc.fill()
+        }
 
-          nc.beginPath()
-          nc.arc(cx + ox, cy + oy, radius, 0, Math.PI * 2)
-          nc.fillStyle = grd
-          nc.fill()
+        // Layer 2 — inner hot core (oxygen/ionized, smaller, brighter)
+        {
+          const [r,g,b] = type.inner
+          const radius = baseR * (0.45 + Math.random() * 0.3)
+          const op = 0.07 + Math.random() * 0.07
+          const grd = nc.createRadialGradient(cx, cy, 0, cx, cy, radius)
+          grd.addColorStop(0,   `rgba(${r},${g},${b},${op.toFixed(3)})`)
+          grd.addColorStop(0.4, `rgba(${r},${g},${b},${(op*0.55).toFixed(3)})`)
+          grd.addColorStop(1,   `rgba(${r},${g},${b},0)`)
+          nc.beginPath(); nc.arc(cx, cy, radius, 0, Math.PI*2)
+          nc.fillStyle = grd; nc.fill()
+        }
+
+        // Layer 3 — optional accent lobe (asymmetric — makes shape feel organic)
+        if (type.accent && Math.random() > 0.35) {
+          const [r,g,b] = type.accent
+          const radius = baseR * (0.3 + Math.random() * 0.35)
+          const ox = (Math.random() - 0.5) * baseR * 0.7
+          const oy = (Math.random() - 0.5) * baseR * 0.7
+          const op = 0.04 + Math.random() * 0.045
+          const grd = nc.createRadialGradient(cx+ox, cy+oy, 0, cx+ox, cy+oy, radius)
+          grd.addColorStop(0,   `rgba(${r},${g},${b},${op.toFixed(3)})`)
+          grd.addColorStop(1,   `rgba(${r},${g},${b},0)`)
+          nc.beginPath(); nc.arc(cx+ox, cy+oy, radius, 0, Math.PI*2)
+          nc.fillStyle = grd; nc.fill()
         }
       }
+
+      // Reset composite mode
+      nc.globalCompositeOperation = 'source-over'
     }
 
     const resize = () => {
