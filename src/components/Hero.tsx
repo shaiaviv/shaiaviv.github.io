@@ -151,18 +151,6 @@ export default function Hero() {
         </svg>
       </motion.div>
 
-      {/* Dot grid — far parallax plane (opposite direction = stereo depth) */}
-      <motion.div
-        className="absolute pointer-events-none hidden lg:block"
-        style={{ right: '5%', top: '50%', marginTop: '-3.5rem', x: dotX, y: dotY }}
-        aria-hidden="true"
-      >
-        <div className="grid gap-[14px]" style={{ gridTemplateColumns: 'repeat(7, 4px)', opacity: 0.065 }}>
-          {Array.from({ length: 49 }).map((_, i) => (
-            <div key={i} className="w-1 h-1 rounded-full bg-accent" />
-          ))}
-        </div>
-      </motion.div>
 
       <motion.div
         className="max-w-5xl w-full relative z-10"
