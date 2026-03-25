@@ -3,7 +3,7 @@ export interface Project {
   description: string
   language: string
   tags: string[]
-  repo: string
+  repo?: string
   live?: string
 }
 
@@ -31,7 +31,7 @@ export const projects: Project[] = [
       'Full-stack mobile app for AI-powered photo album generation using facial recognition. Built with Flutter (Dart), Node.js, Firebase, and face-api.js (TensorFlow.js).',
     language: 'Dart',
     tags: ['Flutter', 'Firebase', 'AI', 'Node.js'],
-    repo: 'https://github.com/shaiaviv',
+    repo: 'https://github.com/IditMedizada/AIlbum',
   },
   {
     name: 'Chat App',
@@ -47,6 +47,5 @@ export const projects: Project[] = [
       'Full Arkanoid game in Java applying OOP principles: inheritance, polymorphism, and design patterns, as a deep-dive into object-oriented game architecture.',
     language: 'Java',
     tags: ['Java', 'OOP', 'Design Patterns'],
-    repo: 'https://github.com/shaiaviv',
   },
 ]
