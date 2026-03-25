@@ -49,19 +49,19 @@ export default function Skills() {
   return (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <section id="skills" ref={sectionRef as any} className="py-32 overflow-hidden relative">
-      {/* Horizontal parallax watermark — drifts across the section on scroll */}
-      <motion.div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-        style={{ x: decorX, opacity: decorOpacity }}
+      {/* Horizontal parallax watermark — static wrapper centers the text,
+          only the text itself drifts so it slides smoothly through the section */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
         aria-hidden="true"
       >
-        <span
-          className="font-black font-mono text-accent"
-          style={{ fontSize: 'clamp(8rem, 22vw, 18rem)', letterSpacing: '-0.04em' }}
+        <motion.span
+          className="font-black font-mono text-accent whitespace-nowrap"
+          style={{ fontSize: 'clamp(8rem, 22vw, 18rem)', letterSpacing: '-0.04em', x: decorX, opacity: decorOpacity }}
         >
           {'</>'}
-        </span>
-      </motion.div>
+        </motion.span>
+      </div>
 
       <div className="max-w-5xl mx-auto px-6 mb-14 relative z-10">
         <motion.div
