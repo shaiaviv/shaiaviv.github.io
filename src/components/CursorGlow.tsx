@@ -20,19 +20,13 @@ export default function CursorGlow() {
   return (
     <motion.div
       className="fixed top-0 left-0 pointer-events-none z-[9998]"
-      style={{
-        x: springX,
-        y: springY,
-        translateX: '-50%',
-        translateY: '-50%',
-      }}
+      style={{ x: springX, y: springY, translateX: '-50%', translateY: '-50%' }}
       aria-hidden="true"
     >
       <div
-        className="w-72 h-72 rounded-full"
+        className="w-80 h-80 rounded-full"
         style={{
-          background: 'radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, rgba(34, 211, 238, 0.04) 40%, transparent 70%)',
-          filter: 'blur(1px)',
+          background: 'radial-gradient(circle, rgba(0,229,160,0.06) 0%, rgba(0,184,212,0.03) 45%, transparent 70%)',
         }}
       />
     </motion.div>

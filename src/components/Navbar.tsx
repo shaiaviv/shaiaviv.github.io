@@ -37,18 +37,16 @@ export default function Navbar() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? 'glass border-b border-white/[0.04] shadow-[0_1px_60px_rgba(0,0,0,0.6)]'
-          : ''
+        scrolled ? 'glass border-b border-accent/[0.07] shadow-[0_1px_60px_rgba(0,0,0,0.7)]' : ''
       }`}
     >
       <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
         <a
           href="#"
-          className="font-mono text-sm font-bold tracking-widest text-accent hover:text-accent/70 transition-colors duration-200"
+          className="font-mono text-sm font-bold tracking-widest hover:opacity-70 transition-opacity duration-200"
         >
           <span className="text-text-2">&lt;</span>
-          shai
+          <span className="text-accent">shai</span>
           <span className="text-cyan">.dev</span>
           <span className="text-text-2"> /&gt;</span>
         </a>
@@ -68,7 +66,8 @@ export default function Navbar() {
                   {isActive && (
                     <motion.span
                       layoutId="nav-indicator"
-                      className="absolute -bottom-1.5 left-0 right-0 h-px bg-gradient-to-r from-accent to-cyan"
+                      className="absolute -bottom-1.5 left-0 right-0 h-px"
+                      style={{ background: 'linear-gradient(90deg, #00e5a0, #00b8d4)' }}
                       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     />
                   )}

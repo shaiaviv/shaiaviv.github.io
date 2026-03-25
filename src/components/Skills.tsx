@@ -5,8 +5,8 @@ const skillsRow1 = [
   { name: 'React.js', icon: '⚛️' },
   { name: 'Node.js', icon: '🟢' },
   { name: 'Python', icon: '🐍' },
-  { name: 'Java', icon: '☕' },
   { name: 'TypeScript', icon: '📘' },
+  { name: 'Java', icon: '☕' },
   { name: 'REST APIs', icon: '🔗' },
   { name: 'Socket.io', icon: '🔌' },
 ]
@@ -24,8 +24,8 @@ const skillsRow2 = [
 
 function SkillBadge({ name, icon }: { name: string; icon: string }) {
   return (
-    <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl glass-card border border-white/[0.05] flex-shrink-0 select-none">
-      <span className="text-lg leading-none">{icon}</span>
+    <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl glass-card border border-accent/[0.07] flex-shrink-0 select-none">
+      <span className="text-base leading-none">{icon}</span>
       <span className="text-sm font-medium text-text-2 whitespace-nowrap">{name}</span>
     </div>
   )
@@ -36,8 +36,8 @@ export default function Skills() {
   const doubled2 = [...skillsRow2, ...skillsRow2]
 
   return (
-    <section id="skills" className="py-32 px-6 relative overflow-hidden">
-      <div className="max-w-5xl mx-auto mb-14">
+    <section id="skills" className="py-32 overflow-hidden">
+      <div className="max-w-5xl mx-auto px-6 mb-14">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -45,7 +45,10 @@ export default function Skills() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="section-label mb-6">Skills</div>
-          <h3 className="text-4xl sm:text-5xl font-black text-text-1 tracking-tight leading-tight">
+          <h3
+            className="font-black text-text-1 tracking-tight leading-tight"
+            style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)' }}
+          >
             Technologies I work with
           </h3>
           <p className="text-muted text-lg mt-3 max-w-md">
@@ -59,23 +62,16 @@ export default function Skills() {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="space-y-3 -mx-6 px-0"
+        className="space-y-3"
       >
-        {/* Row 1 — scrolls left */}
         <div className="marquee-track">
-          <div className="marquee-row marquee-row-left gap-3 px-6">
-            {doubled1.map((skill, i) => (
-              <SkillBadge key={`r1-${i}`} {...skill} />
-            ))}
+          <div className="marquee-row marquee-row-left gap-3 px-3">
+            {doubled1.map((skill, i) => <SkillBadge key={`r1-${i}`} {...skill} />)}
           </div>
         </div>
-
-        {/* Row 2 — scrolls right */}
         <div className="marquee-track">
-          <div className="marquee-row marquee-row-right gap-3 px-6">
-            {doubled2.map((skill, i) => (
-              <SkillBadge key={`r2-${i}`} {...skill} />
-            ))}
+          <div className="marquee-row marquee-row-right gap-3 px-3">
+            {doubled2.map((skill, i) => <SkillBadge key={`r2-${i}`} {...skill} />)}
           </div>
         </div>
       </motion.div>

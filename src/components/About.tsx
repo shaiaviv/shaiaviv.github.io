@@ -4,18 +4,18 @@ const containerVariants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.1 } },
 }
-
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
 }
 
 const highlights = [
-  { label: 'React, Node.js, WebSockets' },
-  { label: 'AI-Native Development' },
-  { label: 'REST APIs & Firebase' },
-  { label: 'Flutter / Dart' },
-  { label: 'Cyber & Networking (IDF)' },
+  'React · Node.js · TypeScript',
+  'WebSockets & REST APIs',
+  'Flutter / Dart',
+  'Firebase & MongoDB',
+  'AI-Native Development',
+  'Cyber & Networking (IDF)',
 ]
 
 export default function About() {
@@ -28,13 +28,13 @@ export default function About() {
           whileInView="visible"
           viewport={{ once: true, margin: '-80px' }}
         >
-          <motion.div variants={itemVariants} className="section-label mb-8">
+          <motion.div variants={itemVariants} className="section-label mb-10">
             About me
           </motion.div>
 
           <div className="flex flex-col md:flex-row gap-16 items-start">
-            {/* Text side */}
-            <motion.div variants={itemVariants} className="flex-1 space-y-6">
+            {/* Text */}
+            <motion.div variants={itemVariants} className="flex-1 space-y-5">
               <p className="text-text-2 leading-relaxed text-[1.075rem]">
                 Computer Science graduate (GPA: 87.5, Bar-Ilan University) with a passion for
                 building full-stack applications and an AI-native development mindset.
@@ -49,29 +49,28 @@ export default function About() {
                 specialized in computer networks and completed a Cyber Warfare course.
               </p>
 
-              {/* Skill highlights */}
               <div className="flex flex-wrap gap-2 pt-2">
                 {highlights.map((h) => (
                   <span
-                    key={h.label}
-                    className="px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-accent bg-accent/10 border border-accent/15"
+                    key={h}
+                    className="px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-accent bg-accent/8 border border-accent/15"
                   >
-                    {h.label}
+                    {h}
                   </span>
                 ))}
               </div>
             </motion.div>
 
-            {/* Image side */}
+            {/* Image */}
             <motion.div variants={itemVariants} className="flex-shrink-0 self-start">
               <motion.div
                 className="relative group"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
               >
-                {/* Glow halo */}
-                <div className="absolute -inset-3 rounded-2xl bg-gradient-to-br from-accent/20 to-cyan/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                {/* Offset decorative border */}
+                <div className="absolute -inset-4 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: 'radial-gradient(circle, rgba(0,229,160,0.12) 0%, transparent 70%)', filter: 'blur(20px)' }}
+                />
                 <div className="absolute inset-0 rounded-2xl border border-accent/20 translate-x-3 translate-y-3 group-hover:translate-x-4 group-hover:translate-y-4 transition-transform duration-300" />
                 <img
                   src="https://avatars.githubusercontent.com/u/118115930?v=4"
