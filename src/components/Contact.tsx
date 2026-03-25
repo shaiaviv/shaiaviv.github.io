@@ -63,7 +63,7 @@ export default function Contact() {
           style={{
             fontSize: 'clamp(6rem, 22vw, 18rem)',
             color: 'transparent',
-            WebkitTextStroke: '1px rgba(0,229,160,0.04)',
+            WebkitTextStroke: '2px rgba(0,229,160,0.18)',
           }}
         >
           HELLO
