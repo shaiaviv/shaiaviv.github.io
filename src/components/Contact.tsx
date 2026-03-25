@@ -51,16 +51,13 @@ export default function Contact() {
   // three simultaneous transforms on one element create compelling motion depth
   // Contact is the last section — scrollYProgress tops out ~0.55 before the page ends,
   // so map the animation into the reachable [0, 0.6] range and use larger values
-  const rawY      = useTransform(scrollYProgress, [0, 0.6], [100, -60])
-  const rawRotate = useTransform(scrollYProgress, [0, 0.6], [-10, 6])
-  const rawScale  = useTransform(scrollYProgress, [0, 0.3, 0.6], [0.78, 1.0, 1.14])
+  const rawY     = useTransform(scrollYProgress, [0, 0.6], [80, -60])
+  const rawScale = useTransform(scrollYProgress, [0, 0.6], [0.88, 1.08])
 
-  // Spring-smooth all three transforms — adds inertia so HELLO floats
-  // rather than snapping frame-to-frame with raw scroll events
-  const springCfg = { stiffness: 50, damping: 20 }
-  const watermarkY      = useSpring(rawY,      springCfg)
-  const watermarkRotate = useSpring(rawRotate, springCfg)
-  const watermarkScale  = useSpring(rawScale,  springCfg)
+  // Spring smoothing — rotation removed (large text renders rough mid-rotation)
+  const watermarkY     = useSpring(rawY,     { stiffness: 40, damping: 25 })
+  const watermarkScale = useSpring(rawScale, { stiffness: 40, damping: 25 })
+  const watermarkRotate = 0
 
   return (
     <section id="contact" ref={sectionRef} className="py-36 px-6 relative overflow-hidden">
