@@ -97,7 +97,7 @@ export default function Contact() {
           </h3>
 
           <p className="text-text-2 mb-12 leading-relaxed text-lg max-w-md mx-auto">
-            Whether you have a project in mind, want to collaborate, or just want to say hi —
+            Whether you have a project in mind, want to collaborate, or just want to say hi.
             my inbox is always open.
           </p>
 

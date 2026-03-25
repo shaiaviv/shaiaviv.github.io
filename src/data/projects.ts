@@ -11,7 +11,7 @@ export const projects: Project[] = [
   {
     name: 'Movie Match',
     description:
-      'Real-time collaborative movie matching app — users in shared rooms swipe on movies and match when both like the same film. Built with Socket.io, React 18, and TMDB API.',
+      'Real-time collaborative movie matching app where users in shared rooms swipe on movies and match when both like the same film. Built with Socket.io, React 18, and TMDB API.',
     language: 'JavaScript',
     tags: ['React', 'Socket.io', 'Node.js', 'Vercel'],
     repo: 'https://github.com/shaiaviv/movie-match',
@@ -20,7 +20,7 @@ export const projects: Project[] = [
   {
     name: 'RecipeWizard',
     description:
-      'iOS app that auto-extracts recipes from TikTok & Instagram Reels using AI. Share a video, Claude AI reads the caption and returns structured ingredients, steps, and cook time — saved instantly to your recipe book.',
+      'iOS app that auto-extracts recipes from TikTok & Instagram Reels using AI. Share a video, Claude AI reads the caption and returns structured ingredients, steps, and cook time, saved instantly to your recipe book.',
     language: 'Swift',
     tags: ['Swift', 'iOS', 'Claude AI', 'Google Sign-In'],
     repo: 'https://github.com/shaiaviv/recipewizard',
@@ -44,7 +44,7 @@ export const projects: Project[] = [
   {
     name: 'Arkanoid Game',
     description:
-      'Full Arkanoid game in Java applying OOP principles — inheritance, polymorphism, and design patterns — as a deep-dive into object-oriented game architecture.',
+      'Full Arkanoid game in Java applying OOP principles: inheritance, polymorphism, and design patterns, as a deep-dive into object-oriented game architecture.',
     language: 'Java',
     tags: ['Java', 'OOP', 'Design Patterns'],
     repo: 'https://github.com/shaiaviv',

@@ -67,7 +67,7 @@ export default function About() {
                 with a desire to build products end-to-end.
               </p>
               <p className="text-text-2 leading-relaxed text-[1.075rem]">
-                Sees AI as a core part of engineering, not a layer on top — embedded in
+                Sees AI as a core part of engineering, not a layer on top: embedded in
                 the workflow, the tooling, and the products themselves.
               </p>
 

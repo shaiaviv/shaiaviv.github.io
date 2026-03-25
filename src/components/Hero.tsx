@@ -213,7 +213,7 @@ export default function Hero() {
           style={{ y: bioY }}
           className="text-muted text-lg max-w-lg mb-10 leading-relaxed"
         >
-          AI-native software engineer with a product mindset — driven to learn,
+          AI-native software engineer with a product mindset, driven to learn,
           build end-to-end, and ship.
         </motion.p>
 
