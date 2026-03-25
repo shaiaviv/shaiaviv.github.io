@@ -128,7 +128,7 @@ export default function Hero() {
           {[
             { value: '5+', label: 'Projects shipped' },
             { value: '87.5', label: 'University GPA' },
-            { value: 'BIU', label: 'Bar-Ilan Univ.' },
+            { value: 'BIU', label: 'Bar-Ilan University' },
           ].map(({ value, label }) => (
             <div key={label} className="flex flex-col gap-1">
               <span className="text-3xl font-black font-mono text-accent leading-none">{value}</span>
