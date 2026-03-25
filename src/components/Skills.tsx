@@ -1,67 +1,84 @@
 import { motion } from 'framer-motion'
 
-const skills = [
+const skillsRow1 = [
   { name: 'JavaScript', icon: '⚡' },
   { name: 'React.js', icon: '⚛️' },
   { name: 'Node.js', icon: '🟢' },
   { name: 'Python', icon: '🐍' },
   { name: 'Java', icon: '☕' },
-  { name: 'Flutter / Dart', icon: '🎯' },
+  { name: 'TypeScript', icon: '📘' },
+  { name: 'REST APIs', icon: '🔗' },
   { name: 'Socket.io', icon: '🔌' },
+]
+
+const skillsRow2 = [
+  { name: 'Flutter / Dart', icon: '🎯' },
   { name: 'MongoDB', icon: '🍃' },
   { name: 'Firebase', icon: '🔥' },
-  { name: 'REST APIs', icon: '🔗' },
   { name: 'Git & GitHub', icon: '🌿' },
   { name: 'Vercel / Railway', icon: '🚀' },
   { name: 'HTML & CSS', icon: '🎨' },
   { name: 'Linux', icon: '🐧' },
-  { name: 'TensorFlow.js', icon: '🧠' },
   { name: 'Claude Code', icon: '🤖' },
 ]
 
-export default function Skills() {
+function SkillBadge({ name, icon }: { name: string; icon: string }) {
   return (
-    <section id="skills" className="py-28 px-6 relative">
-      {/* Subtle section background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.015] to-transparent pointer-events-none" />
+    <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl glass-card border border-white/[0.05] flex-shrink-0 select-none">
+      <span className="text-lg leading-none">{icon}</span>
+      <span className="text-sm font-medium text-text-2 whitespace-nowrap">{name}</span>
+    </div>
+  )
+}
 
-      <div className="max-w-5xl mx-auto relative">
+export default function Skills() {
+  const doubled1 = [...skillsRow1, ...skillsRow1]
+  const doubled2 = [...skillsRow2, ...skillsRow2]
+
+  return (
+    <section id="skills" className="py-32 px-6 relative overflow-hidden">
+      <div className="max-w-5xl mx-auto mb-14">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-14"
         >
-          <div className="section-label mb-4">03. Skills</div>
-          <h3 className="text-3xl sm:text-4xl font-bold text-[#f0f0f0] tracking-tight">
+          <div className="section-label mb-6">Skills</div>
+          <h3 className="text-4xl sm:text-5xl font-black text-text-1 tracking-tight leading-tight">
             Technologies I work with
           </h3>
+          <p className="text-muted text-lg mt-3 max-w-md">
+            The stack I reach for when shipping products.
+          </p>
         </motion.div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {skills.map((skill, i) => (
-            <motion.div
-              key={skill.name}
-              initial={{ opacity: 0, scale: 0.9, y: 10 }}
-              whileInView={{ opacity: 1, scale: 1, y: 0 }}
-              whileHover={{
-                scale: 1.04,
-                y: -2,
-                borderColor: 'rgba(108, 99, 255, 0.5)',
-                boxShadow: '0 4px 20px rgba(108, 99, 255, 0.18)',
-              }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.04, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="bg-surface/70 backdrop-blur-sm border border-white/5 rounded-xl px-4 py-3.5
-                flex items-center gap-3 cursor-default transition-colors duration-200"
-            >
-              <span className="text-xl leading-none">{skill.icon}</span>
-              <span className="text-sm font-medium text-[#d0d0e0] tracking-tight">{skill.name}</span>
-            </motion.div>
-          ))}
-        </div>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="space-y-3 -mx-6 px-0"
+      >
+        {/* Row 1 — scrolls left */}
+        <div className="marquee-track">
+          <div className="marquee-row marquee-row-left gap-3 px-6">
+            {doubled1.map((skill, i) => (
+              <SkillBadge key={`r1-${i}`} {...skill} />
+            ))}
+          </div>
+        </div>
+
+        {/* Row 2 — scrolls right */}
+        <div className="marquee-track">
+          <div className="marquee-row marquee-row-right gap-3 px-6">
+            {doubled2.map((skill, i) => (
+              <SkillBadge key={`r2-${i}`} {...skill} />
+            ))}
+          </div>
+        </div>
+      </motion.div>
     </section>
   )
 }
