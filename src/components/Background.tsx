@@ -126,50 +126,36 @@ export default function Background() {
       nebulaCanvas.height = canvas.height
       nc.clearRect(0, 0, nebulaCanvas.width, nebulaCanvas.height)
 
-      const count = 7 + Math.floor(Math.random() * 3)  // 7-9
+      const count = 14 + Math.floor(Math.random() * 6)  // 14-19 small nebulas
       for (let i = 0; i < count; i++) {
         const [outerC, innerC] = NEBULA_PALETTES[Math.floor(Math.random() * NEBULA_PALETTES.length)]
-        // Spread evenly — divide canvas into a loose grid so nebulas don't cluster
-        const col = i % 3, row = Math.floor(i / 3)
-        const cx = (col / 3 + Math.random() * 0.28 + 0.05) * nebulaCanvas.width
-        const cy = (row / 3 + Math.random() * 0.28 + 0.05) * nebulaCanvas.height
-        const baseR = 180 + Math.random() * 260   // 180-440 px
+        const cx = Math.random() * nebulaCanvas.width
+        const cy = Math.random() * nebulaCanvas.height
+        const baseR = 60 + Math.random() * 100   // 60-160 px — small and tight
 
-        // Apply heavy blur for the soft diffuse nebula look
-        nc.filter = `blur(${28 + Math.random() * 24}px)`
+        nc.filter = `blur(${14 + Math.random() * 14}px)`
 
-        // Outer cloud — cool gas, large, transparent
+        // Outer cloud
         const outerR = baseR * (1.1 + Math.random() * 0.4)
         const og = nc.createRadialGradient(cx, cy, 0, cx, cy, outerR)
         const [or,og2,ob] = outerC
-        og.addColorStop(0,   `rgba(${or},${og2},${ob},0.22)`)
-        og.addColorStop(0.45,`rgba(${or},${og2},${ob},0.10)`)
+        og.addColorStop(0,   `rgba(${or},${og2},${ob},0.28)`)
+        og.addColorStop(0.5, `rgba(${or},${og2},${ob},0.12)`)
         og.addColorStop(1,   `rgba(${or},${og2},${ob},0)`)
         nc.beginPath(); nc.arc(cx, cy, outerR, 0, Math.PI*2)
         nc.fillStyle = og; nc.fill()
 
-        // Inner hot core — ionized gas, smaller, brighter, offset slightly
-        const ox = (Math.random()-0.5) * baseR * 0.35
-        const oy = (Math.random()-0.5) * baseR * 0.35
-        const innerR = baseR * (0.4 + Math.random() * 0.25)
+        // Inner hot core
+        const ox = (Math.random()-0.5) * baseR * 0.4
+        const oy = (Math.random()-0.5) * baseR * 0.4
+        const innerR = baseR * (0.45 + Math.random() * 0.25)
         const ig = nc.createRadialGradient(cx+ox, cy+oy, 0, cx+ox, cy+oy, innerR)
         const [ir,ig2,ib] = innerC
-        ig.addColorStop(0,   `rgba(${ir},${ig2},${ib},0.30)`)
-        ig.addColorStop(0.5, `rgba(${ir},${ig2},${ib},0.12)`)
+        ig.addColorStop(0,   `rgba(${ir},${ig2},${ib},0.38)`)
+        ig.addColorStop(0.5, `rgba(${ir},${ig2},${ib},0.15)`)
         ig.addColorStop(1,   `rgba(${ir},${ig2},${ib},0)`)
         nc.beginPath(); nc.arc(cx+ox, cy+oy, innerR, 0, Math.PI*2)
         nc.fillStyle = ig; nc.fill()
-
-        // Accent lobe — second offset blob for organic asymmetry
-        const ox2 = (Math.random()-0.5) * baseR * 0.6
-        const oy2 = (Math.random()-0.5) * baseR * 0.6
-        const accentR = baseR * (0.25 + Math.random() * 0.2)
-        const ac = Math.random() > 0.5 ? outerC : innerC
-        const ag = nc.createRadialGradient(cx+ox2, cy+oy2, 0, cx+ox2, cy+oy2, accentR)
-        ag.addColorStop(0,   `rgba(${ac[0]},${ac[1]},${ac[2]},0.18)`)
-        ag.addColorStop(1,   `rgba(${ac[0]},${ac[1]},${ac[2]},0)`)
-        nc.beginPath(); nc.arc(cx+ox2, cy+oy2, accentR, 0, Math.PI*2)
-        nc.fillStyle = ag; nc.fill()
       }
 
       nc.filter = 'none'
