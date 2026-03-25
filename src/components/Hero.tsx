@@ -22,9 +22,9 @@ const itemVariants = {
 }
 
 function MagneticButton({
-  href, children, primary,
+  href, children, primary, target,
 }: {
-  href: string; children: React.ReactNode; primary?: boolean
+  href: string; children: React.ReactNode; primary?: boolean; target?: string
 }) {
   const ref = useRef<HTMLAnchorElement>(null)
   const x = useMotionValue(0)
@@ -43,6 +43,8 @@ function MagneticButton({
     <motion.a
       ref={ref}
       href={href}
+      target={target}
+      rel={target === '_blank' ? 'noopener noreferrer' : undefined}
       style={{ x: springX, y: springY }}
       whileTap={{ scale: 0.96 }}
       onMouseMove={handleMouseMove}
@@ -234,6 +236,7 @@ export default function Hero() {
         <motion.div variants={itemVariants} style={{ y: ctaY }} className="flex flex-wrap gap-4 mb-16">
           <MagneticButton href="#projects" primary>View my projects →</MagneticButton>
           <MagneticButton href="#contact">Get in touch</MagneticButton>
+          <MagneticButton href="/portfolio/resume.pdf" target="_blank">View Resume</MagneticButton>
         </motion.div>
 
         {/* Scroll indicator */}
