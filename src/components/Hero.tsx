@@ -212,8 +212,11 @@ export default function Hero() {
           style={{ y: bioY }}
           className="text-muted text-lg max-w-lg mb-10 leading-relaxed"
         >
-          Driven by an eagerness to learn new technologies, patterns, and systems —
-          with a desire to build products end-to-end.
+          AI-native software engineer with a product mindset and a B.Sc. in Computer
+          Science from Bar-Ilan University. Driven by an eagerness to learn new
+          technologies, patterns, and systems, with a desire to build products end-to-end.
+          Sees AI as a core part of engineering, not a layer on top: embedded in the
+          workflow, the tooling, and the products themselves.
         </motion.p>
 
         {/* Stats */}
