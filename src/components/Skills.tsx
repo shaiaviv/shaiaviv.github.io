@@ -37,7 +37,24 @@ export default function Skills() {
   const doubled2 = [...skillsRow2, ...skillsRow2, ...skillsRow2, ...skillsRow2]
 
   return (
-    <section id="skills" className="py-32 overflow-hidden">
+    <section id="skills" className="py-32 overflow-hidden relative">
+      {/* CSS-animated watermark — compositor thread keeps it smooth during scroll */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+        aria-hidden="true"
+      >
+        <span
+          className="drift-watermark font-black font-mono whitespace-nowrap"
+          style={{
+            fontSize: 'clamp(8rem, 22vw, 18rem)',
+            letterSpacing: '-0.04em',
+            color: 'transparent',
+            WebkitTextStroke: '1px rgba(0,229,160,0.15)',
+          }}
+        >
+          {'</>'}
+        </span>
+      </div>
 
       <div className="max-w-5xl mx-auto px-6 mb-14 relative z-10">
         <motion.div

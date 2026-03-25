@@ -198,6 +198,21 @@
 .cursor-blink { animation: blink 0.9s step-end infinite; }
 
 /* ════════════════════════════════════════════
+   SKILLS WATERMARK DRIFT
+   CSS animation = compositor thread = smooth during scroll
+   (Framer Motion animate() drops frames when main thread is busy)
+   ════════════════════════════════════════════ */
+
+@keyframes drift-horizontal {
+  0%, 100% { transform: translateX(-300px); }
+  50%       { transform: translateX(300px); }
+}
+
+.drift-watermark {
+  animation: drift-horizontal 18s ease-in-out infinite;
+}
+
+/* ════════════════════════════════════════════
    REDUCED MOTION
    ════════════════════════════════════════════ */
 
@@ -205,4 +220,5 @@
   .marquee-row-left, .marquee-row-right { animation: none !important; }
   .scroll-indicator-line { animation: none !important; }
   .pulse-ring { animation: none !important; }
+  .drift-watermark { animation: none !important; }
 }
