@@ -103,22 +103,18 @@ export default function Background() {
     }
 
     // ── nebula offscreen cache ─────────────────────────
-    // Rendered once at init/resize, blitted each frame — no per-frame cost.
-    // Each nebula = 3 overlapping soft blobs with a blur pass for that
-    // dreamy diffuse glow look from real Hubble photography.
+    // Rendered once, blitted each frame — zero per-frame gradient cost.
     const nebulaCanvas = document.createElement('canvas')
     const nc = nebulaCanvas.getContext('2d')!
 
-    // [outerColor, innerColor] — cool hydrogen rim → hot ionized core
-    const NEBULA_PALETTES: [[number,number,number],[number,number,number]][] = [
-      [[180, 40,120], [ 40,180,220]],  // Orion:   magenta rim  → teal core
-      [[220, 60, 80], [ 50,160,200]],  // Rosette: crimson ring → blue core
-      [[200, 80, 30], [ 20,160,150]],  // Pillars: amber dust   → teal core
-      [[ 60,100,220], [120, 40,180]],  // Helix:   blue ring    → violet core
-      [[200, 60,140], [ 80,120,240]],  // Lagoon:  hot pink     → royal blue
-      [[220, 80, 50], [100, 60,200]],  // Veil:    red filament → indigo
-      [[160, 50,200], [ 40,160,180]],  // Purple cloud → cerulean
-      [[230,140, 40], [180, 50,100]],  // Amber stellar nursery → rose
+    const NEBULA_PALETTE: [number, number, number][] = [
+      [110,  55, 210],  // violet
+      [ 40,  80, 220],  // deep blue
+      [  0, 140, 200],  // cerulean
+      [180,  35, 120],  // magenta-rose
+      [ 50, 160, 140],  // teal-green
+      [200,  80,  40],  // warm amber
+      [ 90,  40, 180],  // indigo
     ]
 
     const paintNebulas = () => {
@@ -126,39 +122,28 @@ export default function Background() {
       nebulaCanvas.height = canvas.height
       nc.clearRect(0, 0, nebulaCanvas.width, nebulaCanvas.height)
 
-      const count = 14 + Math.floor(Math.random() * 6)  // 14-19 small nebulas
+      const count = 7 + Math.floor(Math.random() * 4)  // 7-10 nebulas
       for (let i = 0; i < count; i++) {
-        const [outerC, innerC] = NEBULA_PALETTES[Math.floor(Math.random() * NEBULA_PALETTES.length)]
         const cx = Math.random() * nebulaCanvas.width
         const cy = Math.random() * nebulaCanvas.height
-        const baseR = 60 + Math.random() * 100   // 60-160 px — small and tight
+        for (let lobe = 0; lobe < 2; lobe++) {
+          const [r, g, b] = NEBULA_PALETTE[Math.floor(Math.random() * NEBULA_PALETTE.length)]
+          const radius = 120 + Math.random() * 280
+          const ox = (Math.random() - 0.5) * radius * 0.6
+          const oy = (Math.random() - 0.5) * radius * 0.6
+          const opacity = 0.028 + Math.random() * 0.042
 
-        nc.filter = `blur(${14 + Math.random() * 14}px)`
+          const grd = nc.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, radius)
+          grd.addColorStop(0,    `rgba(${r},${g},${b},${opacity.toFixed(3)})`)
+          grd.addColorStop(0.35, `rgba(${r},${g},${b},${(opacity * 0.5).toFixed(3)})`)
+          grd.addColorStop(1,    `rgba(${r},${g},${b},0)`)
 
-        // Outer cloud
-        const outerR = baseR * (1.1 + Math.random() * 0.4)
-        const og = nc.createRadialGradient(cx, cy, 0, cx, cy, outerR)
-        const [or,og2,ob] = outerC
-        og.addColorStop(0,   `rgba(${or},${og2},${ob},0.28)`)
-        og.addColorStop(0.5, `rgba(${or},${og2},${ob},0.12)`)
-        og.addColorStop(1,   `rgba(${or},${og2},${ob},0)`)
-        nc.beginPath(); nc.arc(cx, cy, outerR, 0, Math.PI*2)
-        nc.fillStyle = og; nc.fill()
-
-        // Inner hot core
-        const ox = (Math.random()-0.5) * baseR * 0.4
-        const oy = (Math.random()-0.5) * baseR * 0.4
-        const innerR = baseR * (0.45 + Math.random() * 0.25)
-        const ig = nc.createRadialGradient(cx+ox, cy+oy, 0, cx+ox, cy+oy, innerR)
-        const [ir,ig2,ib] = innerC
-        ig.addColorStop(0,   `rgba(${ir},${ig2},${ib},0.38)`)
-        ig.addColorStop(0.5, `rgba(${ir},${ig2},${ib},0.15)`)
-        ig.addColorStop(1,   `rgba(${ir},${ig2},${ib},0)`)
-        nc.beginPath(); nc.arc(cx+ox, cy+oy, innerR, 0, Math.PI*2)
-        nc.fillStyle = ig; nc.fill()
+          nc.beginPath()
+          nc.arc(cx + ox, cy + oy, radius, 0, Math.PI * 2)
+          nc.fillStyle = grd
+          nc.fill()
+        }
       }
-
-      nc.filter = 'none'
     }
 
     const resize = () => {
