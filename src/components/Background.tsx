@@ -132,17 +132,17 @@ export default function Background() {
         // Each nebula is 2 overlapping lobes for an organic, irregular shape
         for (let lobe = 0; lobe < 2; lobe++) {
           const [r, g, b] = NEBULA_PALETTE[Math.floor(Math.random() * NEBULA_PALETTE.length)]
-          const radius = 120 + Math.random() * 280  // 120–400 px
+          const radius = 200 + Math.random() * 400  // 200–600 px
           const ox = (Math.random() - 0.5) * radius * 0.6  // lobe offset
           const oy = (Math.random() - 0.5) * radius * 0.6
-          const opacity = 0.028 + Math.random() * 0.042  // 0.028–0.07 (very subtle)
+          const opacity = 0.12 + Math.random() * 0.14  // 0.12–0.26
 
           const grd = nc.createRadialGradient(
             cx + ox, cy + oy, 0,
             cx + ox, cy + oy, radius,
           )
           grd.addColorStop(0,   `rgba(${r},${g},${b},${opacity.toFixed(3)})`)
-          grd.addColorStop(0.35,`rgba(${r},${g},${b},${(opacity * 0.5).toFixed(3)})`)
+          grd.addColorStop(0.4, `rgba(${r},${g},${b},${(opacity * 0.45).toFixed(3)})`)
           grd.addColorStop(1,   `rgba(${r},${g},${b},0)`)
 
           nc.beginPath()
