@@ -212,8 +212,8 @@ export default function Hero() {
           style={{ y: bioY }}
           className="text-muted text-lg max-w-lg mb-10 leading-relaxed"
         >
-          AI-native engineer with a product mindset. I build real-time web apps,
-          mobile apps, and AI-powered tools end-to-end — from idea to production.
+          Driven by an eagerness to learn new technologies, patterns, and systems —
+          with a desire to build products end-to-end.
         </motion.p>
 
         {/* Stats */}
