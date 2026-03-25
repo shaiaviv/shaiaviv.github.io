@@ -103,35 +103,22 @@ export default function Background() {
     }
 
     // ── nebula offscreen cache ─────────────────────────
-    // Rendered once, blitted each frame. Uses 'screen' composite mode so
-    // overlapping color layers add like real light (teal + pink → near-white core).
+    // Rendered once at init/resize, blitted each frame — no per-frame cost.
+    // Each nebula = 3 overlapping soft blobs with a blur pass for that
+    // dreamy diffuse glow look from real Hubble photography.
     const nebulaCanvas = document.createElement('canvas')
     const nc = nebulaCanvas.getContext('2d')!
 
-    // Real nebula types: each has a hot inner color (ionized oxygen = teal/blue)
-    // and a cool outer color (hydrogen = pink/red). Authentic Hubble palette.
-    type NebulaType = {
-      inner: [number,number,number]   // hot core — oxygen/ionized gas
-      outer: [number,number,number]   // cool rim — hydrogen/dust
-      accent?: [number,number,number] // optional third emission layer
-    }
-    const NEBULA_TYPES: NebulaType[] = [
-      // Orion-style: teal core → pink-magenta → dusty orange rim
-      { inner: [60,190,210],  outer: [220,80,130],  accent: [200,100,50] },
-      // Pillars of Creation (Hubble SHO): teal bg → gold pillars
-      { inner: [30,170,160],  outer: [230,160,50],  accent: [180,60,30] },
-      // Rosette: bright pink ring with blue cavity
-      { inner: [80,120,220],  outer: [220,60,90],   accent: [200,40,70] },
-      // Helix / Eye of God: vivid blue → teal → orange outer ring
-      { inner: [80,160,255],  outer: [220,100,40] },
-      // Lagoon: magenta cloud with teal highlights
-      { inner: [160,220,240], outer: [210,70,120],  accent: [180,50,80] },
-      // Veil supernova remnant: red hydrogen + blue oxygen filaments
-      { inner: [60,160,220],  outer: [220,70,50],   accent: [160,80,200] },
-      // Deep purple / indigo cloud
-      { inner: [100,60,220],  outer: [180,40,120] },
-      // Warm amber stellar nursery
-      { inner: [255,190,60],  outer: [200,60,40] },
+    // [outerColor, innerColor] — cool hydrogen rim → hot ionized core
+    const NEBULA_PALETTES: [[number,number,number],[number,number,number]][] = [
+      [[180, 40,120], [ 40,180,220]],  // Orion:   magenta rim  → teal core
+      [[220, 60, 80], [ 50,160,200]],  // Rosette: crimson ring → blue core
+      [[200, 80, 30], [ 20,160,150]],  // Pillars: amber dust   → teal core
+      [[ 60,100,220], [120, 40,180]],  // Helix:   blue ring    → violet core
+      [[200, 60,140], [ 80,120,240]],  // Lagoon:  hot pink     → royal blue
+      [[220, 80, 50], [100, 60,200]],  // Veil:    red filament → indigo
+      [[160, 50,200], [ 40,160,180]],  // Purple cloud → cerulean
+      [[230,140, 40], [180, 50,100]],  // Amber stellar nursery → rose
     ]
 
     const paintNebulas = () => {
@@ -139,61 +126,53 @@ export default function Background() {
       nebulaCanvas.height = canvas.height
       nc.clearRect(0, 0, nebulaCanvas.width, nebulaCanvas.height)
 
-      // 'screen' composite: colors add like light — overlapping layers brighten naturally
-      nc.globalCompositeOperation = 'screen'
-
-      const count = 6 + Math.floor(Math.random() * 4)  // 6-9 nebulas
+      const count = 7 + Math.floor(Math.random() * 3)  // 7-9
       for (let i = 0; i < count; i++) {
-        const type = NEBULA_TYPES[Math.floor(Math.random() * NEBULA_TYPES.length)]
-        const cx = Math.random() * nebulaCanvas.width
-        const cy = Math.random() * nebulaCanvas.height
-        const baseR = 160 + Math.random() * 320   // 160-480 px
+        const [outerC, innerC] = NEBULA_PALETTES[Math.floor(Math.random() * NEBULA_PALETTES.length)]
+        // Spread evenly — divide canvas into a loose grid so nebulas don't cluster
+        const col = i % 3, row = Math.floor(i / 3)
+        const cx = (col / 3 + Math.random() * 0.28 + 0.05) * nebulaCanvas.width
+        const cy = (row / 3 + Math.random() * 0.28 + 0.05) * nebulaCanvas.height
+        const baseR = 180 + Math.random() * 260   // 180-440 px
 
-        // Layer 1 — outer cool cloud (hydrogen glow, largest, faintest)
-        {
-          const [r,g,b] = type.outer
-          const radius = baseR * (1.0 + Math.random() * 0.5)
-          const ox = (Math.random() - 0.5) * 80
-          const oy = (Math.random() - 0.5) * 80
-          const op = 0.055 + Math.random() * 0.055
-          const grd = nc.createRadialGradient(cx+ox, cy+oy, 0, cx+ox, cy+oy, radius)
-          grd.addColorStop(0,   `rgba(${r},${g},${b},${op.toFixed(3)})`)
-          grd.addColorStop(0.5, `rgba(${r},${g},${b},${(op*0.4).toFixed(3)})`)
-          grd.addColorStop(1,   `rgba(${r},${g},${b},0)`)
-          nc.beginPath(); nc.arc(cx+ox, cy+oy, radius, 0, Math.PI*2)
-          nc.fillStyle = grd; nc.fill()
-        }
+        // Apply heavy blur for the soft diffuse nebula look
+        nc.filter = `blur(${28 + Math.random() * 24}px)`
 
-        // Layer 2 — inner hot core (oxygen/ionized, smaller, brighter)
-        {
-          const [r,g,b] = type.inner
-          const radius = baseR * (0.45 + Math.random() * 0.3)
-          const op = 0.07 + Math.random() * 0.07
-          const grd = nc.createRadialGradient(cx, cy, 0, cx, cy, radius)
-          grd.addColorStop(0,   `rgba(${r},${g},${b},${op.toFixed(3)})`)
-          grd.addColorStop(0.4, `rgba(${r},${g},${b},${(op*0.55).toFixed(3)})`)
-          grd.addColorStop(1,   `rgba(${r},${g},${b},0)`)
-          nc.beginPath(); nc.arc(cx, cy, radius, 0, Math.PI*2)
-          nc.fillStyle = grd; nc.fill()
-        }
+        // Outer cloud — cool gas, large, transparent
+        const outerR = baseR * (1.1 + Math.random() * 0.4)
+        const og = nc.createRadialGradient(cx, cy, 0, cx, cy, outerR)
+        const [or,og2,ob] = outerC
+        og.addColorStop(0,   `rgba(${or},${og2},${ob},0.22)`)
+        og.addColorStop(0.45,`rgba(${or},${og2},${ob},0.10)`)
+        og.addColorStop(1,   `rgba(${or},${og2},${ob},0)`)
+        nc.beginPath(); nc.arc(cx, cy, outerR, 0, Math.PI*2)
+        nc.fillStyle = og; nc.fill()
 
-        // Layer 3 — optional accent lobe (asymmetric — makes shape feel organic)
-        if (type.accent && Math.random() > 0.35) {
-          const [r,g,b] = type.accent
-          const radius = baseR * (0.3 + Math.random() * 0.35)
-          const ox = (Math.random() - 0.5) * baseR * 0.7
-          const oy = (Math.random() - 0.5) * baseR * 0.7
-          const op = 0.04 + Math.random() * 0.045
-          const grd = nc.createRadialGradient(cx+ox, cy+oy, 0, cx+ox, cy+oy, radius)
-          grd.addColorStop(0,   `rgba(${r},${g},${b},${op.toFixed(3)})`)
-          grd.addColorStop(1,   `rgba(${r},${g},${b},0)`)
-          nc.beginPath(); nc.arc(cx+ox, cy+oy, radius, 0, Math.PI*2)
-          nc.fillStyle = grd; nc.fill()
-        }
+        // Inner hot core — ionized gas, smaller, brighter, offset slightly
+        const ox = (Math.random()-0.5) * baseR * 0.35
+        const oy = (Math.random()-0.5) * baseR * 0.35
+        const innerR = baseR * (0.4 + Math.random() * 0.25)
+        const ig = nc.createRadialGradient(cx+ox, cy+oy, 0, cx+ox, cy+oy, innerR)
+        const [ir,ig2,ib] = innerC
+        ig.addColorStop(0,   `rgba(${ir},${ig2},${ib},0.30)`)
+        ig.addColorStop(0.5, `rgba(${ir},${ig2},${ib},0.12)`)
+        ig.addColorStop(1,   `rgba(${ir},${ig2},${ib},0)`)
+        nc.beginPath(); nc.arc(cx+ox, cy+oy, innerR, 0, Math.PI*2)
+        nc.fillStyle = ig; nc.fill()
+
+        // Accent lobe — second offset blob for organic asymmetry
+        const ox2 = (Math.random()-0.5) * baseR * 0.6
+        const oy2 = (Math.random()-0.5) * baseR * 0.6
+        const accentR = baseR * (0.25 + Math.random() * 0.2)
+        const ac = Math.random() > 0.5 ? outerC : innerC
+        const ag = nc.createRadialGradient(cx+ox2, cy+oy2, 0, cx+ox2, cy+oy2, accentR)
+        ag.addColorStop(0,   `rgba(${ac[0]},${ac[1]},${ac[2]},0.18)`)
+        ag.addColorStop(1,   `rgba(${ac[0]},${ac[1]},${ac[2]},0)`)
+        nc.beginPath(); nc.arc(cx+ox2, cy+oy2, accentR, 0, Math.PI*2)
+        nc.fillStyle = ag; nc.fill()
       }
 
-      // Reset composite mode
-      nc.globalCompositeOperation = 'source-over'
+      nc.filter = 'none'
     }
 
     const resize = () => {
