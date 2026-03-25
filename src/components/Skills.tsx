@@ -32,8 +32,8 @@ function SkillBadge({ name, icon }: { name: string; icon: string }) {
 }
 
 export default function Skills() {
-  const doubled1 = [...skillsRow1, ...skillsRow1]
-  const doubled2 = [...skillsRow2, ...skillsRow2]
+  const doubled1 = [...skillsRow1, ...skillsRow1, ...skillsRow1, ...skillsRow1]
+  const doubled2 = [...skillsRow2, ...skillsRow2, ...skillsRow2, ...skillsRow2]
 
   return (
     <section id="skills" className="py-32 overflow-hidden">
