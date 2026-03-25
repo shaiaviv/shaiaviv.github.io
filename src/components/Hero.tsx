@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { motion, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
 import { useTextScramble } from '../hooks/useTextScramble'
 import { useTypewriter } from '../hooks/useTypewriter'
@@ -60,6 +60,7 @@ function MagneticButton({
 export default function Hero() {
   const scrambledName = useTextScramble('Shai Aviv', 400)
   const { text: role } = useTypewriter(ROLES, { initialDelay: 1600 })
+  const sectionRef = useRef<HTMLElement>(null)
 
   // Scroll-driven parallax — each layer moves at a different rate,
   // creating the illusion of depth as the user scrolls away
@@ -72,13 +73,96 @@ export default function Hero() {
   const heroOpacity = useTransform(scrollY, [0, 520], [1, 0])
   const heroScale   = useTransform(scrollY, [0, 600], [1, 0.96])
 
+  // Mouse-driven 2D parallax — three decorative depth planes.
+  // Moving elements in OPPOSITE directions from the same mouse input
+  // creates genuine stereoscopic depth that scroll-only parallax can't.
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  const smoothX = useSpring(mouseX, { stiffness: 60, damping: 20 })
+  const smoothY = useSpring(mouseY, { stiffness: 60, damping: 20 })
+
+  // Far plane: dot grid — moves opposite to near elements (depth illusion)
+  const dotX = useTransform(smoothX, [-0.5, 0.5], [20, -20])
+  const dotY = useTransform(smoothY, [-0.5, 0.5], [12, -12])
+  // Mid plane: rotating dashed ring — moderate movement
+  const ringX = useTransform(smoothX, [-0.5, 0.5], [-15, 15])
+  const ringY = useTransform(smoothY, [-0.5, 0.5], [-10, 10])
+  // Near plane: gradient orb — moves most (feels closest to camera)
+  const orbX = useTransform(smoothX, [-0.5, 0.5], [-30, 30])
+  const orbY = useTransform(smoothY, [-0.5, 0.5], [-20, 20])
+
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+
+    const handleMove = (e: MouseEvent) => {
+      mouseX.set(e.clientX / window.innerWidth - 0.5)
+      mouseY.set(e.clientY / window.innerHeight - 0.5)
+    }
+    const handleLeave = () => {
+      mouseX.set(0)
+      mouseY.set(0)
+    }
+
+    window.addEventListener('mousemove', handleMove, { passive: true })
+    section.addEventListener('mouseleave', handleLeave)
+    return () => {
+      window.removeEventListener('mousemove', handleMove)
+      section.removeEventListener('mouseleave', handleLeave)
+    }
+  }, [mouseX, mouseY])
+
   return (
     <motion.section
-      className="min-h-screen flex items-center justify-center px-6 pt-20"
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ref={sectionRef as any}
+      className="min-h-screen flex items-center justify-center px-6 pt-20 relative overflow-hidden"
       style={{ opacity: heroOpacity, scale: heroScale }}
     >
+      {/* Gradient orb — near parallax plane (tracks mouse most aggressively) */}
       <motion.div
-        className="max-w-5xl w-full"
+        className="absolute pointer-events-none"
+        style={{ right: '-5%', top: '0%', x: orbX, y: orbY }}
+        aria-hidden="true"
+      >
+        <div style={{
+          width: 700,
+          height: 700,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(0,229,160,0.13) 0%, rgba(0,184,212,0.06) 40%, transparent 65%)',
+          filter: 'blur(90px)',
+        }} />
+      </motion.div>
+
+      {/* Dashed rotating ring — mid parallax plane */}
+      <motion.div
+        className="absolute pointer-events-none hidden md:block"
+        style={{ right: '8%', top: '15%', x: ringX, y: ringY }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 45, repeat: Infinity, ease: 'linear' }}
+        aria-hidden="true"
+      >
+        <svg width="260" height="260" viewBox="0 0 260 260" fill="none">
+          <circle cx="130" cy="130" r="129" stroke="rgba(0,229,160,0.07)" strokeWidth="1" strokeDasharray="3 9" />
+          <circle cx="130" cy="130" r="86" stroke="rgba(0,184,212,0.05)" strokeWidth="1" strokeDasharray="2 13" />
+        </svg>
+      </motion.div>
+
+      {/* Dot grid — far parallax plane (opposite direction = stereo depth) */}
+      <motion.div
+        className="absolute pointer-events-none hidden lg:block"
+        style={{ right: '5%', top: '50%', marginTop: '-3.5rem', x: dotX, y: dotY }}
+        aria-hidden="true"
+      >
+        <div className="grid gap-[14px]" style={{ gridTemplateColumns: 'repeat(7, 4px)', opacity: 0.065 }}>
+          {Array.from({ length: 49 }).map((_, i) => (
+            <div key={i} className="w-1 h-1 rounded-full bg-accent" />
+          ))}
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="max-w-5xl w-full relative z-10"
         variants={containerVariants}
         initial="hidden"
         animate="visible"

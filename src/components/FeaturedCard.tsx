@@ -20,6 +20,12 @@ export default function FeaturedCard({ project }: { project: Project }) {
   const spotY = useTransform(mouseY, [0, 1], [0, 100])
   const spotlightBg = useMotionTemplate`radial-gradient(380px circle at ${spotX}% ${spotY}%, rgba(0,229,160,0.08), transparent 65%)`
 
+  // 3D tilt — same physics as ProjectCard but gentler (larger card = subtler rotation)
+  const rawRotateX = useTransform(mouseY, [0, 1], [3, -3])
+  const rawRotateY = useTransform(mouseX, [0, 1], [-3, 3])
+  const rotateX = useSpring(rawRotateX, { stiffness: 180, damping: 24 })
+  const rotateY = useSpring(rawRotateY, { stiffness: 180, damping: 24 })
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     mouseX.set((e.clientX - rect.left) / rect.width)
@@ -28,8 +34,9 @@ export default function FeaturedCard({ project }: { project: Project }) {
   const handleMouseLeave = () => { mouseX.set(0.5); mouseY.set(0.5) }
 
   return (
-    <div
+    <motion.div
       ref={ref}
+      style={{ rotateX, rotateY, transformPerspective: 900, transformStyle: 'preserve-3d' }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className="relative glass-card rounded-2xl overflow-hidden group
@@ -133,6 +140,6 @@ export default function FeaturedCard({ project }: { project: Project }) {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

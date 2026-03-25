@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
 
 const R = 0, G = 229, B = 160
 
@@ -12,6 +12,21 @@ export default function Background() {
   const { scrollY } = useScroll()
   const blob1Y = useTransform(scrollY, [0, 2000], [0, -180])
   const blob2Y = useTransform(scrollY, [0, 2000], [0, 120])
+
+  // Mouse-driven X parallax — blobs shift in opposite directions as cursor
+  // moves, adding a second axis of depth independent from scroll
+  const rawMouseX = useMotionValue(0.5)
+  const smoothMouseX = useSpring(rawMouseX, { stiffness: 40, damping: 15 })
+  const blob1X = useTransform(smoothMouseX, [0, 1], [-50, 50])
+  const blob2X = useTransform(smoothMouseX, [0, 1], [40, -40])
+
+  useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => {
+      rawMouseX.set(e.clientX / window.innerWidth)
+    }
+    window.addEventListener('mousemove', onMouseMove, { passive: true })
+    return () => window.removeEventListener('mousemove', onMouseMove)
+  }, [rawMouseX])
 
   useEffect(() => {
     const canvas = canvasRef.current!
@@ -110,7 +125,7 @@ export default function Background() {
     <>
       <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" aria-hidden="true" />
 
-      {/* Top-left blob — drifts up on scroll (feels far/slow) */}
+      {/* Top-left blob — drifts up on scroll + shifts right as cursor moves right */}
       <motion.div
         className="fixed pointer-events-none z-0"
         style={{
@@ -119,11 +134,12 @@ export default function Background() {
           borderRadius: '50%',
           background: `radial-gradient(circle, rgba(${R},${G},${B},0.12) 0%, rgba(${R},${G},${B},0.04) 40%, transparent 70%)`,
           filter: 'blur(60px)',
+          x: blob1X,
           y: blob1Y,
         }}
       />
 
-      {/* Bottom-right blob — drifts down on scroll (opposite = depth) */}
+      {/* Bottom-right blob — drifts down on scroll + shifts left as cursor moves right (depth opposition) */}
       <motion.div
         className="fixed pointer-events-none z-0"
         style={{
@@ -132,6 +148,7 @@ export default function Background() {
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(0,184,212,0.1) 0%, rgba(0,184,212,0.04) 40%, transparent 70%)',
           filter: 'blur(60px)',
+          x: blob2X,
           y: blob2Y,
         }}
       />

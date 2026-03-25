@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion'
+import { useRef } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import RevealText from './RevealText'
 
 const skillsRow1 = [
@@ -36,9 +37,33 @@ export default function Skills() {
   const doubled1 = [...skillsRow1, ...skillsRow1, ...skillsRow1, ...skillsRow1]
   const doubled2 = [...skillsRow2, ...skillsRow2, ...skillsRow2, ...skillsRow2]
 
+  const sectionRef = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  })
+  // Drifts horizontally as section scrolls — code symbol feels like it's floating in a separate plane
+  const decorX = useTransform(scrollYProgress, [0, 1], [-120, 120])
+  const decorOpacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 0.045, 0.045, 0])
+
   return (
-    <section id="skills" className="py-32 overflow-hidden">
-      <div className="max-w-5xl mx-auto px-6 mb-14">
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    <section id="skills" ref={sectionRef as any} className="py-32 overflow-hidden relative">
+      {/* Horizontal parallax watermark — drifts across the section on scroll */}
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+        style={{ x: decorX, opacity: decorOpacity }}
+        aria-hidden="true"
+      >
+        <span
+          className="font-black font-mono text-accent"
+          style={{ fontSize: 'clamp(8rem, 22vw, 18rem)', letterSpacing: '-0.04em' }}
+        >
+          {'</>'}
+        </span>
+      </motion.div>
+
+      <div className="max-w-5xl mx-auto px-6 mb-14 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -71,7 +96,7 @@ export default function Skills() {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="space-y-3"
+        className="space-y-3 relative z-10"
       >
         <div className="marquee-track">
           <div className="marquee-row marquee-row-left">

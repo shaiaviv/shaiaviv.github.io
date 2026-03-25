@@ -47,15 +47,18 @@ export default function Contact() {
     target: sectionRef,
     offset: ['start end', 'end start'],
   })
-  // Watermark drifts upward slower than the page — creates depth
-  const watermarkY = useTransform(scrollYProgress, [0, 1], [80, -80])
+  // Watermark drifts upward, rotates, and scales as section scrolls —
+  // three simultaneous transforms on one element create compelling motion depth
+  const watermarkY      = useTransform(scrollYProgress, [0, 1], [80, -80])
+  const watermarkRotate = useTransform(scrollYProgress, [0, 1], [-5, 5])
+  const watermarkScale  = useTransform(scrollYProgress, [0.1, 0.5, 0.9], [0.82, 1, 1.14])
 
   return (
     <section id="contact" ref={sectionRef} className="py-36 px-6 relative overflow-hidden">
       {/* Watermark with parallax */}
       <motion.div
         className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-        style={{ y: watermarkY }}
+        style={{ y: watermarkY, rotate: watermarkRotate, scale: watermarkScale }}
         aria-hidden="true"
       >
         <span

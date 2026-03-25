@@ -40,11 +40,12 @@ export default function Projects() {
           <FeaturedCard project={featured} />
         </motion.div>
 
-        {/* 2-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* 2-column mason grid — odd cards are offset down, creating visual depth and rhythm */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:items-start">
           {rest.map((project, i) => (
             <motion.div
               key={project.name}
+              className={i % 2 === 1 ? 'md:mt-14' : ''}
               initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-40px' }}
