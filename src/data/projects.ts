@@ -1,3 +1,8 @@
+export interface Screenshot {
+  src: string
+  caption?: string
+}
+
 export interface Project {
   name: string
   description: string
@@ -5,6 +10,7 @@ export interface Project {
   tags: string[]
   repo?: string
   live?: string
+  screenshots?: Screenshot[]
 }
 
 export const projects: Project[] = [
@@ -16,6 +22,13 @@ export const projects: Project[] = [
     tags: ['React', 'Socket.io', 'Node.js', 'Vercel'],
     repo: 'https://github.com/shaiaviv/movie-match',
     live: 'https://movie-match-flame.vercel.app',
+    screenshots: [
+      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-home.png', caption: 'Home' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-filters.png', caption: 'Filters & Room Setup' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-join.png', caption: 'Join a Room' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-swiping.png', caption: 'Swiping' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-match.png', caption: "It's a Match" },
+    ],
   },
   {
     name: 'RecipeWizard',
@@ -24,6 +37,16 @@ export const projects: Project[] = [
     language: 'Swift',
     tags: ['Swift', 'iOS', 'Claude AI', 'Google Sign-In'],
     repo: 'https://github.com/shaiaviv/recipewizard',
+    screenshots: [
+      { src: 'https://raw.githubusercontent.com/shaiaviv/recipewizard/main/docs/screenshots/01_login.png', caption: 'Sign in with Google' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/recipewizard/main/docs/screenshots/02_share_sheet.png', caption: 'Share from TikTok/Instagram' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/recipewizard/main/docs/screenshots/03_share_loading.png', caption: 'AI extraction in progress' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/recipewizard/main/docs/screenshots/04_share_done.png', caption: 'Recipe saved' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/recipewizard/main/docs/screenshots/05_recipe_list.png', caption: 'Recipe book' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/recipewizard/main/docs/screenshots/06_recipe_detail.png', caption: 'Recipe detail' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/recipewizard/main/docs/screenshots/07_category_filter.png', caption: 'Smart category filters' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/recipewizard/main/docs/screenshots/08_ai_image.png', caption: 'AI-generated illustrations' },
+    ],
   },
   {
     name: 'AI-lbum',

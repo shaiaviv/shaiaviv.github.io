@@ -1,6 +1,7 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from 'framer-motion'
 import type { Project } from '../data/projects'
+import ScreenshotLightbox from './ScreenshotLightbox'
 
 const languageColors: Record<string, string> = {
   JavaScript: '#f7df1e',
@@ -13,6 +14,9 @@ const languageColors: Record<string, string> = {
 
 export default function FeaturedCard({ project }: { project: Project }) {
   const ref = useRef<HTMLDivElement>(null)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const hasScreenshots = !!project.screenshots?.length
 
   const mouseX = useMotionValue(0.5)
   const mouseY = useMotionValue(0.5)
@@ -34,6 +38,7 @@ export default function FeaturedCard({ project }: { project: Project }) {
   const handleMouseLeave = () => { mouseX.set(0.5); mouseY.set(0.5) }
 
   return (
+    <>
     <motion.div
       ref={ref}
       style={{ rotateX, rotateY, transformPerspective: 900, transformStyle: 'preserve-3d' }}
@@ -116,7 +121,7 @@ export default function FeaturedCard({ project }: { project: Project }) {
         </div>
 
         {/* Right: visual panel */}
-        <div className="md:w-72 border-t md:border-t-0 md:border-l border-accent/[0.06] bg-accent/[0.02] flex flex-col items-center justify-center p-10 gap-6">
+        <div className="md:w-72 border-t md:border-t-0 md:border-l border-accent/[0.06] bg-accent/[0.02] flex flex-col items-center justify-center p-6 md:p-8 gap-5">
           {/* Language badge */}
           <div className="flex flex-col items-center gap-2">
             <span
@@ -129,12 +134,32 @@ export default function FeaturedCard({ project }: { project: Project }) {
             <span className="font-mono text-xs text-muted tracking-wide">{project.language}</span>
           </div>
 
-          {/* Decorative grid of dots — fixed opacity pattern */}
-          <div className="grid grid-cols-6 gap-2 opacity-20">
-            {[1,0,1,1,0,1, 0,1,1,0,1,0, 1,1,0,1,0,1, 0,1,0,1,1,0, 1,0,1,0,1,1].map((on, i) => (
-              <div key={i} className="w-1 h-1 rounded-full bg-accent" style={{ opacity: on ? 1 : 0.25 }} />
-            ))}
-          </div>
+          {hasScreenshots ? (
+            <button
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex(0); setLightboxOpen(true) }}
+              className="relative w-full aspect-video rounded-lg overflow-hidden border border-white/[0.1] hover:border-accent/40 transition-colors duration-200 group/shot"
+              aria-label={`View ${project.name} screenshots`}
+            >
+              <img
+                src={project.screenshots![0].src}
+                alt={`${project.name} screenshot`}
+                loading="lazy"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-background/0 group-hover/shot:bg-background/60 transition-colors duration-200 flex items-center justify-center">
+                <span className="opacity-0 group-hover/shot:opacity-100 transition-opacity duration-200 font-mono text-xs text-text-1 bg-white/[0.08] border border-white/[0.15] px-3 py-1.5 rounded-full">
+                  View {project.screenshots!.length} screenshots
+                </span>
+              </div>
+            </button>
+          ) : (
+            /* Decorative grid of dots — fixed opacity pattern */
+            <div className="grid grid-cols-6 gap-2 opacity-20">
+              {[1,0,1,1,0,1, 0,1,1,0,1,0, 1,1,0,1,0,1, 0,1,0,1,1,0, 1,0,1,0,1,1].map((on, i) => (
+                <div key={i} className="w-1 h-1 rounded-full bg-accent" style={{ opacity: on ? 1 : 0.25 }} />
+              ))}
+            </div>
+          )}
 
           <div className="text-center">
             <div className="font-mono text-[0.65rem] text-muted tracking-widest uppercase mb-1">Status</div>
@@ -143,5 +168,16 @@ export default function FeaturedCard({ project }: { project: Project }) {
         </div>
       </div>
     </motion.div>
+    {hasScreenshots && (
+      <ScreenshotLightbox
+        screenshots={project.screenshots!}
+        projectName={project.name}
+        isOpen={lightboxOpen}
+        index={lightboxIndex}
+        onIndexChange={setLightboxIndex}
+        onClose={() => setLightboxOpen(false)}
+      />
+    )}
+    </>
   )
 }

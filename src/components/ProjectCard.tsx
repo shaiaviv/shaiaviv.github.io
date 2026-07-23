@@ -1,6 +1,7 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from 'framer-motion'
 import type { Project } from '../data/projects'
+import ScreenshotLightbox from './ScreenshotLightbox'
 
 interface Props {
   project: Project
@@ -19,6 +20,8 @@ const languageColors: Record<string, string> = {
 
 export default function ProjectCard({ project, index }: Props) {
   const cardRef = useRef<HTMLDivElement>(null)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   const mouseX = useMotionValue(0.5)
   const mouseY = useMotionValue(0.5)
@@ -40,6 +43,7 @@ export default function ProjectCard({ project, index }: Props) {
   const handleMouseLeave = () => { mouseX.set(0.5); mouseY.set(0.5) }
 
   return (
+    <>
     <motion.div
       ref={cardRef}
       initial={{ opacity: 0, y: 28 }}
@@ -106,6 +110,26 @@ export default function ProjectCard({ project, index }: Props) {
         {project.description}
       </p>
 
+      {project.screenshots && project.screenshots.length > 0 && (
+        <div className="flex gap-2 mb-5 relative z-10">
+          {project.screenshots.slice(0, 4).map((shot, i) => (
+            <button
+              key={shot.src}
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex(i); setLightboxOpen(true) }}
+              aria-label={`View ${project.name} screenshots`}
+              className="relative w-12 h-12 rounded-lg overflow-hidden border border-white/[0.1] hover:border-accent/40 transition-colors duration-200 shrink-0"
+            >
+              <img src={shot.src} alt="" loading="lazy" className="w-full h-full object-cover" />
+              {i === 3 && project.screenshots!.length > 4 && (
+                <span className="absolute inset-0 bg-background/70 flex items-center justify-center font-mono text-[0.65rem] text-text-1">
+                  +{project.screenshots!.length - 4}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex items-center gap-3 mt-auto flex-wrap relative z-10">
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full"
@@ -126,5 +150,16 @@ export default function ProjectCard({ project, index }: Props) {
         </div>
       </div>
     </motion.div>
+    {project.screenshots && (
+      <ScreenshotLightbox
+        screenshots={project.screenshots}
+        projectName={project.name}
+        isOpen={lightboxOpen}
+        index={lightboxIndex}
+        onIndexChange={setLightboxIndex}
+        onClose={() => setLightboxOpen(false)}
+      />
+    )}
+    </>
   )
 }
