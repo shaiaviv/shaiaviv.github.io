@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Background from './components/Background'
 import CursorGlow from './components/CursorGlow'
+import DoodleTrail from './components/DoodleTrail'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import About from './components/About'
@@ -33,10 +34,14 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  // data-doodle-root marks where DoodleTrail's "is this the bare backdrop?"
+  // walk stops — this wrapper paints the page background, so it must not
+  // itself count as a painted surface.
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative" data-doodle-root>
       <Background />
       <CursorGlow />
+      <DoodleTrail />
       <AchievementToasts />
       <AnimatePresence>
         {partyMode && (

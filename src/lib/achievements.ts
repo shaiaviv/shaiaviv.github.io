@@ -41,6 +41,12 @@ export const ACHIEVEMENTS: Record<string, Achievement> = {
     title: 'Pop!',
     message: 'You clicked a background blob and popped it. Sneaky.',
   },
+  doodleDominos: {
+    id: 'doodle-dominos',
+    emoji: '🖍️',
+    title: 'Domino run!',
+    message: 'You drew on the page and watched the dots topple into a pile.',
+  },
   saidHello: {
     id: 'said-hello',
     emoji: '👋',
