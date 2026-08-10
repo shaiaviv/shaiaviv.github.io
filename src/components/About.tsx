@@ -126,18 +126,13 @@ export default function About() {
               >
                 {/* Tape corner */}
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-green/60 border border-text-1/20 rotate-[-3deg]" />
-                {/*
-                  The frame carries the source's own 448:787 ratio instead of a
-                  square: this is a full-length portrait, and a square crop
-                  centres on the torso and loses the face entirely.
-                */}
                 <img
                   src={portrait}
                   alt="Shai Aviv"
-                  width={448}
-                  height={787}
+                  width={891}
+                  height={896}
                   draggable={false}
-                  className="relative w-48 md:w-56 aspect-[448/787] object-cover pointer-events-none"
+                  className="relative w-48 h-48 md:w-56 md:h-56 object-cover pointer-events-none"
                 />
                 <p className="text-center font-display text-sm font-bold text-text-1 mt-3">
                   <RevealText>build. ship. repeat.</RevealText>
