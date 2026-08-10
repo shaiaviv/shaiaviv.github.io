@@ -101,28 +101,50 @@ function DraggableLetter({ char, gradient }: { char: string; gradient?: boolean 
   )
 }
 
-/** A small floating doodle you can also grab and toss — pure desk-toy delight. */
+/**
+ * A small floating doodle you can also grab and toss — pure desk-toy delight.
+ *
+ * The idle bob and the drag deliberately live on SEPARATE elements. A running
+ * CSS animation outranks inline styles in the cascade, so while float-bob sat
+ * on the draggable element itself it silently discarded every transform Framer
+ * Motion wrote — the drag ran and the achievement fired, but the toy never
+ * moved. The wrapper owns the keyframe's transform, the inner motion.div owns
+ * the drag's. Same reason the tilt goes through Framer (as in SkillBadge)
+ * instead of a rotate-* class: a class would lose to Framer's inline transform
+ * the moment you grabbed it, snapping the toy upright mid-drag.
+ */
 function DeskToy({
-  children, top, left, right, bottom, duration, className = '',
+  children, top, left, right, bottom, duration, tilt = 0,
 }: {
   children: React.ReactNode
   top?: string; left?: string; right?: string; bottom?: string
   duration: number
-  className?: string
+  tilt?: number
 }) {
+  // z-20 lives on the wrapper rather than the draggable child, and has to: the
+  // bob keeps a transform on this wrapper at all times, and a transform other
+  // than none creates a stacking context — which traps any z-index set on the
+  // child inside it. Only the wrapper can out-stack the hero content's z-10, so
+  // without this a toy dragged across the name slides behind the letters.
   return (
-    <motion.div
-      className={`absolute pointer-events-auto cursor-grab active:cursor-grabbing select-none float-bob hidden sm:block ${className}`}
-      style={{ top, left, right, bottom, touchAction: 'none', ['--bob-dur' as any]: `${duration}s` } as React.CSSProperties}
-      drag
-      dragSnapToOrigin
-      dragElastic={0.2}
-      whileDrag={{ scale: 1.25, zIndex: 50 }}
-      whileHover={{ scale: 1.12 }}
-      onDragStart={onDragUnlock}
+    <div
+      className="absolute z-20 pointer-events-auto float-bob hidden sm:block"
+      style={{ top, left, right, bottom, ['--bob-dur' as any]: `${duration}s` } as React.CSSProperties}
     >
-      {children}
-    </motion.div>
+      <motion.div
+        className="cursor-grab active:cursor-grabbing select-none"
+        style={{ rotate: tilt, touchAction: 'none' }}
+        drag
+        dragSnapToOrigin
+        dragElastic={0.2}
+        dragTransition={dragBounce}
+        whileDrag={{ scale: 1.25 }}
+        whileHover={{ scale: 1.12 }}
+        onDragStart={onDragUnlock}
+      >
+        {children}
+      </motion.div>
+    </div>
   )
 }
 
@@ -176,9 +198,9 @@ export default function Hero() {
       style={{ opacity: heroOpacity, scale: heroScale }}
     >
       <DeskToy top="18%" left="6%" duration={5.5}><StarDoodle /></DeskToy>
-      <DeskToy top="12%" right="10%" duration={4.5} className="rotate-12"><BoltDoodle /></DeskToy>
-      <DeskToy bottom="22%" left="10%" duration={6} className="-rotate-6"><SquiggleDoodle /></DeskToy>
-      <DeskToy bottom="14%" right="8%" duration={5} ><CircleScribbleDoodle /></DeskToy>
+      <DeskToy top="12%" right="10%" duration={4.5} tilt={12}><BoltDoodle /></DeskToy>
+      <DeskToy bottom="22%" left="10%" duration={6} tilt={-6}><SquiggleDoodle /></DeskToy>
+      <DeskToy bottom="14%" right="8%" duration={5}><CircleScribbleDoodle /></DeskToy>
 
       <motion.div
         className="max-w-5xl w-full relative z-10"
