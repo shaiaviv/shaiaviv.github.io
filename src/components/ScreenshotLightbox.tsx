@@ -34,6 +34,15 @@ export default function ScreenshotLightbox({ screenshots, projectName, isOpen, i
 
   const current = screenshots[index]
 
+  /*
+   * Portalled to document.body, which also makes this immune to the konami
+   * negative for free: this layer and that overlay are both z-[9999] in the
+   * root stacking context, and #root is static so it isolates nothing — equal
+   * z-index means tree order decides, and body's portal comes after #root. So
+   * the lightbox paints ABOVE the inversion and needs no .keep-color opt-out;
+   * adding one here would invert these screenshots rather than protect them.
+   * Verified: the screenshot pixels are identical with the page inverted.
+   */
   return createPortal(
     <AnimatePresence>
       {isOpen && (

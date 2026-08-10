@@ -219,6 +219,33 @@
 .cursor-blink { animation: blink 0.9s step-end infinite; }
 
 /* ════════════════════════════════════════════
+   KONAMI NEGATIVE — OPTING OUT
+   ════════════════════════════════════════════ */
+
+/*
+ * The negative is a white `mix-blend-mode: difference` layer painted OVER the
+ * whole page, so an element cannot exempt itself by raising its z-index: these
+ * images sit inside the content wrapper's z-10 stacking context, which caps
+ * them far below the overlay.
+ *
+ * So invert them a second time instead. filter: invert(1) and difference-with-
+ * white are both 255 − channel in sRGB, so the two cancel and the element keeps
+ * its true colours while everything around it flips.
+ *
+ * Scoped to .page-negative, which App sets only while ONE global layer is
+ * active. During the restore sweep there are two, the page already reads true
+ * colour, and this pre-invert has to come back off.
+ *
+ * Every product screenshot on the site carries this — card thumbnails, the
+ * featured hero shots, and both the full-size and thumbnail images in the
+ * lightbox — because those are real shipped UI being demoed and must always
+ * show their actual colours. Add it to any screenshot added later.
+ */
+.page-negative .keep-color {
+  filter: invert(1);
+}
+
+/* ════════════════════════════════════════════
    REDUCED MOTION
    ════════════════════════════════════════════ */
 

@@ -66,7 +66,7 @@ export default function FeaturedCard({ project }: { project: Project }) {
               src={project.screenshots![0].src}
               alt={`${project.name} screenshot`}
               loading="lazy"
-              className="max-h-[22rem] w-auto max-w-full object-contain rounded-xl border-[3px] border-text-1 shadow-pop-sm"
+              className="keep-color max-h-[22rem] w-auto max-w-full object-contain rounded-xl border-[3px] border-text-1 shadow-pop-sm"
             />
             <div className="absolute inset-0 bg-text-1/0 group-hover/shot:bg-text-1/40 transition-colors duration-200 flex items-center justify-center">
               <span className="opacity-0 group-hover/shot:opacity-100 transition-opacity duration-200 font-mono text-xs text-white font-bold bg-accent px-3 py-1.5 rounded-full">

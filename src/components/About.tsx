@@ -132,7 +132,7 @@ export default function About() {
                   width={891}
                   height={896}
                   draggable={false}
-                  className="relative w-48 h-48 md:w-56 md:h-56 object-cover pointer-events-none"
+                  className="keep-color relative w-48 h-48 md:w-56 md:h-56 object-cover pointer-events-none"
                 />
                 <p className="text-center font-display text-sm font-bold text-text-1 mt-3">
                   <RevealText>build. ship. repeat.</RevealText>

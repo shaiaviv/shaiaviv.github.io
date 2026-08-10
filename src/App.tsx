@@ -94,7 +94,12 @@ export default function App() {
   // walk stops — this wrapper paints the page background, so it must not
   // itself count as a painted surface.
   return (
-    <div className="min-h-screen bg-background relative" data-doodle-root>
+    <div
+      // page-negative drives the .keep-color opt-out in index.css. Only while a
+      // single layer is live: with two, the page already reads true colour.
+      className={`min-h-screen bg-background relative${sweeps === 1 ? ' page-negative' : ''}`}
+      data-doodle-root
+    >
       <Background />
       <CursorGlow />
       <DoodleTrail />
