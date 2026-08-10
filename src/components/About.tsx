@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { motion } from 'framer-motion'
 import RevealText from './RevealText'
+import { dragBounce, dragWhile, onDragUnlock } from '../lib/dragProps'
 
 const containerVariants = {
   hidden: {},
@@ -32,7 +33,17 @@ export default function About() {
           whileInView="visible"
           viewport={{ once: true, margin: '-80px' }}
         >
-          <motion.div variants={itemVariants} className="section-label mb-10">
+          <motion.div
+            variants={itemVariants}
+            drag
+            dragSnapToOrigin
+            dragElastic={0.15}
+            dragTransition={dragBounce}
+            whileDrag={dragWhile}
+            onDragStart={onDragUnlock}
+            style={{ touchAction: 'none' }}
+            className="section-label mb-10 inline-flex cursor-grab active:cursor-grabbing select-none"
+          >
             About me
           </motion.div>
 
@@ -61,7 +72,14 @@ export default function About() {
                     whileHover={{ rotate: 0, y: -3, scale: 1.05 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className={`chip px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold text-text-1 ${h.color}`}
+                    drag
+                    dragSnapToOrigin
+                    dragElastic={0.15}
+                    dragTransition={dragBounce}
+                    whileDrag={dragWhile}
+                    onDragStart={onDragUnlock}
+                    style={{ touchAction: 'none' }}
+                    className={`chip px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold text-text-1 cursor-grab active:cursor-grabbing select-none ${h.color}`}
                   >
                     {h.label}
                   </motion.span>
@@ -72,17 +90,25 @@ export default function About() {
             {/* Polaroid photo */}
             <motion.div variants={itemVariants} className="flex-shrink-0 self-start">
               <motion.div
-                className="relative bg-surface sticker p-3 pb-6 rounded-lg"
+                className="relative bg-surface sticker p-3 pb-6 rounded-lg cursor-grab active:cursor-grabbing select-none"
                 initial={{ rotate: -4 }}
                 whileHover={{ rotate: 0, scale: 1.03, y: -4 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                drag
+                dragSnapToOrigin
+                dragElastic={0.15}
+                dragTransition={dragBounce}
+                whileDrag={dragWhile}
+                onDragStart={onDragUnlock}
+                style={{ touchAction: 'none' }}
               >
                 {/* Tape corner */}
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-green/60 border border-text-1/20 rotate-[-3deg]" />
                 <img
                   src="https://avatars.githubusercontent.com/u/118115930?v=4"
                   alt="Shai Aviv"
-                  className="relative w-48 h-48 md:w-56 md:h-56 object-cover"
+                  draggable={false}
+                  className="relative w-48 h-48 md:w-56 md:h-56 object-cover pointer-events-none"
                 />
                 <p className="text-center font-display text-sm font-bold text-text-1 mt-3">
                   <RevealText>build. ship. repeat.</RevealText>

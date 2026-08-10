@@ -1,9 +1,11 @@
-import { useRef, useState } from 'react'
-import { motion, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
+import { useRef } from 'react'
+import { motion, useMotionValue, useSpring, useScroll, useTransform, useAnimation } from 'framer-motion'
 import { useTextScramble } from '../hooks/useTextScramble'
 import { useTypewriter } from '../hooks/useTypewriter'
-import { unlockAchievement } from '../lib/achievements'
+import { unlockAchievement, ACHIEVEMENTS } from '../lib/achievements'
 import { burstConfetti } from '../lib/confetti'
+import { dragBounce, dragWhile, onDragUnlock } from '../lib/dragProps'
+import { useDragSuppressClick } from '../hooks/useDragSuppressClick'
 
 const ROLES = [
   'Full-Stack Developer',
@@ -30,17 +32,20 @@ function MagneticButton({
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
 }) {
   const ref = useRef<HTMLAnchorElement>(null)
+  const isDragging = useRef(false)
   const x = useMotionValue(0)
   const y = useMotionValue(0)
   const springX = useSpring(x, { stiffness: 200, damping: 18 })
   const springY = useSpring(y, { stiffness: 200, damping: 18 })
+  const dragSuppress = useDragSuppressClick()
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging.current) return
     const rect = ref.current!.getBoundingClientRect()
     x.set((e.clientX - rect.left - rect.width / 2) * 0.28)
     y.set((e.clientY - rect.top - rect.height / 2) * 0.28)
   }
-  const handleMouseLeave = () => { x.set(0); y.set(0) }
+  const handleMouseLeave = () => { if (!isDragging.current) { x.set(0); y.set(0) } }
 
   return (
     <motion.a
@@ -48,15 +53,26 @@ function MagneticButton({
       href={href}
       target={target}
       rel={target === '_blank' ? 'noopener noreferrer' : undefined}
-      style={{ x: springX, y: springY }}
+      style={{ x: springX, y: springY, touchAction: 'none' }}
+      drag
+      dragSnapToOrigin
+      dragElastic={0.15}
+      dragTransition={dragBounce}
+      whileDrag={dragWhile}
       whileTap={{ scale: 0.94, translate: '2px 2px' }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onClick={onClick}
+      onDragStart={() => { isDragging.current = true; dragSuppress.onDragStart() }}
+      onDrag={dragSuppress.onDrag}
+      onDragEnd={() => { isDragging.current = false }}
+      onClick={(e) => {
+        dragSuppress.onClick(e)
+        if (!e.defaultPrevented) onClick?.(e)
+      }}
       className={
         primary
-          ? 'sticker-btn px-7 py-3.5 bg-accent hover:bg-accent-hover text-white rounded-2xl font-bold text-sm transition-colors duration-200 inline-block tracking-wide'
-          : 'sticker-btn px-7 py-3.5 bg-surface text-text-1 hover:bg-surface-2 rounded-2xl font-bold text-sm transition-colors duration-200 inline-block tracking-wide'
+          ? 'sticker-btn px-7 py-3.5 bg-accent hover:bg-accent-hover text-white rounded-2xl font-bold text-sm transition-colors duration-200 inline-block tracking-wide cursor-grab active:cursor-grabbing'
+          : 'sticker-btn px-7 py-3.5 bg-surface text-text-1 hover:bg-surface-2 rounded-2xl font-bold text-sm transition-colors duration-200 inline-block tracking-wide cursor-grab active:cursor-grabbing'
       }
     >
       {children}
@@ -66,8 +82,6 @@ function MagneticButton({
 
 /** A single letter you can grab and fling — springs back to its spot on release. */
 function DraggableLetter({ char, gradient }: { char: string; gradient?: boolean }) {
-  const [grabbed, setGrabbed] = useState(false)
-
   if (char === ' ') return <span className="inline-block w-[0.3em]" />
 
   return (
@@ -79,17 +93,7 @@ function DraggableLetter({ char, gradient }: { char: string; gradient?: boolean 
       dragTransition={{ bounceStiffness: 340, bounceDamping: 18 }}
       whileDrag={{ scale: 1.3, zIndex: 50 }}
       whileHover={{ y: -6, rotate: -4 }}
-      onDragStart={() => {
-        if (!grabbed) {
-          setGrabbed(true)
-          unlockAchievement({
-            id: 'dragged-name',
-            emoji: '🫳',
-            title: 'Fidgety!',
-            message: 'You found out the name is draggable.',
-          })
-        }
-      }}
+      onDragStart={onDragUnlock}
       style={{ touchAction: 'none' }}
     >
       {char}
@@ -115,6 +119,7 @@ function DeskToy({
       dragElastic={0.2}
       whileDrag={{ scale: 1.25, zIndex: 50 }}
       whileHover={{ scale: 1.12 }}
+      onDragStart={onDragUnlock}
     >
       {children}
     </motion.div>
@@ -146,6 +151,19 @@ export default function Hero() {
   const scrambledName = useTextScramble('Shai Aviv', 400)
   const { text: role } = useTypewriter(ROLES, { initialDelay: 1600 })
   const sectionRef = useRef<HTMLElement>(null)
+  const danceControls = useAnimation()
+
+  const handleDance = (e: React.MouseEvent<HTMLSpanElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 45)
+    unlockAchievement(ACHIEVEMENTS.metaSentence)
+    danceControls.start({
+      rotate: [0, -6, 6, -8, 8, -5, 5, -2, 2, 0],
+      y: [0, -10, 0, -8, 0, -5, 0, -2, 0],
+      scale: [1, 1.06, 0.97, 1.05, 0.98, 1.03, 1],
+      transition: { duration: 0.9, ease: 'easeInOut' },
+    })
+  }
 
   const { scrollY } = useScroll()
   const heroOpacity = useTransform(scrollY, [0, 520], [1, 0])
@@ -170,13 +188,23 @@ export default function Hero() {
       >
         {/* Badge */}
         <motion.div variants={itemVariants} className="mb-8">
-          <span className="chip inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-mono font-bold text-text-1 bg-surface">
+          <motion.span
+            drag
+            dragSnapToOrigin
+            dragElastic={0.15}
+            dragTransition={dragBounce}
+            whileDrag={dragWhile}
+            onDragStart={onDragUnlock}
+            whileHover={{ y: -3, rotate: -1.5 }}
+            style={{ touchAction: 'none' }}
+            className="chip inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-mono font-bold text-text-1 bg-surface cursor-grab active:cursor-grabbing select-none"
+          >
             <span className="relative flex h-2 w-2">
               <span className="pulse-ring absolute inline-flex h-full w-full rounded-full bg-cyan opacity-70" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan" />
             </span>
             Available for new opportunities
-          </span>
+          </motion.span>
         </motion.div>
 
         {/* Name — every character is draggable */}
@@ -206,8 +234,18 @@ export default function Hero() {
           variants={itemVariants}
           className="text-text-2 text-lg max-w-lg mb-10 leading-relaxed font-medium"
         >
-          AI-native software engineer with a product mindset, driven to learn,
-          build end-to-end, and ship. <span className="text-text-1 font-bold">Yes, you can drag my name around.</span>
+          <span className="text-text-1 font-bold">AI-native software engineer with a product mindset, driven to learn,
+          build end-to-end, and ship.</span>
+          <br />
+          <br />
+          <motion.span
+            animate={danceControls}
+            onClick={handleDance}
+            whileHover={{ scale: 1.02 }}
+            className="inline-block cursor-pointer select-none"
+          >
+            I believe my personal site should be as fun as I am, so go ahead and play around on the page to find all the hidden easter eggs.
+          </motion.span>
         </motion.p>
 
         {/* Stats */}
@@ -216,10 +254,21 @@ export default function Hero() {
             { value: '87.5', label: 'University GPA', color: 'bg-accent-dim' },
             { value: 'BIU', label: 'Bar-Ilan University', color: 'bg-accent-dim' },
           ].map(({ value, label }) => (
-            <div key={label} className="chip rounded-2xl px-4 py-2.5 bg-surface flex flex-col gap-0.5">
+            <motion.div
+              key={label}
+              drag
+              dragSnapToOrigin
+              dragElastic={0.15}
+              dragTransition={dragBounce}
+              whileDrag={dragWhile}
+              onDragStart={onDragUnlock}
+              whileHover={{ y: -3 }}
+              style={{ touchAction: 'none' }}
+              className="chip rounded-2xl px-4 py-2.5 bg-surface flex flex-col gap-0.5 cursor-grab active:cursor-grabbing select-none"
+            >
               <span className="text-2xl font-display font-bold text-accent leading-none">{value}</span>
               <span className="text-[0.65rem] text-text-2 font-mono tracking-widest uppercase">{label}</span>
-            </div>
+            </motion.div>
           ))}
         </motion.div>
 

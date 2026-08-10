@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { unlockAchievement } from '../lib/achievements'
+import { unlockAchievement, ACHIEVEMENTS } from '../lib/achievements'
 import { burstConfetti } from '../lib/confetti'
+import { dragBounce, dragWhile, onDragUnlock } from '../lib/dragProps'
+import { useDragSuppressClick } from '../hooks/useDragSuppressClick'
 
 const BRICK_COLORS = ['#6c5ce7', '#ff6b57', '#ffc23c', '#06d6a0']
 const COLS = 7
@@ -15,17 +17,13 @@ export default function ArkanoidWidget() {
   const [phase, setPhase] = useState<Phase>('idle')
   const phaseRef = useRef<Phase>('idle')
   const [bricksLeft, setBricksLeft] = useState(COLS * ROWS)
+  const dragSuppress = useDragSuppressClick()
 
   useEffect(() => { phaseRef.current = phase }, [phase])
 
   const startGame = () => {
     setPhase('playing')
-    unlockAchievement({
-      id: 'arkanoid-start',
-      emoji: '🕹️',
-      title: 'Game on!',
-      message: 'You started an actual playable Arkanoid.',
-    })
+    unlockAchievement(ACHIEVEMENTS.arkanoidStart)
   }
 
   useEffect(() => {
@@ -185,12 +183,7 @@ export default function ArkanoidWidget() {
           setPhase('won')
           const rect = canvas.getBoundingClientRect()
           burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 90)
-          unlockAchievement({
-            id: 'arkanoid-win',
-            emoji: '🏆',
-            title: 'Brick breaker!',
-            message: 'You actually cleared the board. Nice.',
-          })
+          unlockAchievement(ACHIEVEMENTS.arkanoidWin)
         }
 
         if (ball.y > H + 20) {
@@ -237,9 +230,18 @@ export default function ArkanoidWidget() {
       <canvas ref={canvasRef} className="block w-full" />
 
       {phase === 'playing' && (
-        <div className="absolute top-1.5 left-1.5 font-mono text-[0.65rem] font-bold bg-surface/90 px-2 py-0.5 rounded-md border border-text-1/20">
+        <motion.div
+          drag
+          dragSnapToOrigin
+          dragElastic={0.15}
+          dragTransition={dragBounce}
+          whileDrag={dragWhile}
+          onDragStart={onDragUnlock}
+          style={{ touchAction: 'none' }}
+          className="absolute top-1.5 left-1.5 font-mono text-[0.65rem] font-bold bg-surface/90 px-2 py-0.5 rounded-md border border-text-1/20 cursor-grab active:cursor-grabbing select-none"
+        >
           {bricksLeft} bricks left
-        </div>
+        </motion.div>
       )}
 
       {phase !== 'playing' && (
@@ -250,8 +252,15 @@ export default function ArkanoidWidget() {
               <p className="font-mono text-[0.65rem] text-text-2">mouse or ← → arrow keys</p>
               <motion.button
                 whileTap={{ scale: 0.94 }}
-                onClick={startGame}
-                className="sticker-btn bg-accent text-white font-display font-bold text-sm px-5 py-2 rounded-full"
+                drag
+                dragSnapToOrigin
+                dragElastic={0.15}
+                dragTransition={dragBounce}
+                whileDrag={dragWhile}
+                {...dragSuppress}
+                style={{ touchAction: 'none' }}
+                onClick={(e) => { dragSuppress.onClick(e); if (!e.defaultPrevented) startGame() }}
+                className="sticker-btn bg-accent text-white font-display font-bold text-sm px-5 py-2 rounded-full cursor-grab active:cursor-grabbing"
               >
                 ▶ Play Arkanoid
               </motion.button>
@@ -260,7 +269,18 @@ export default function ArkanoidWidget() {
           {phase === 'won' && (
             <>
               <p className="font-display font-bold text-lg text-text-1">🏆 Board cleared!</p>
-              <motion.button whileTap={{ scale: 0.94 }} onClick={replay} className="sticker-btn bg-green text-text-1 font-display font-bold text-sm px-5 py-2 rounded-full">
+              <motion.button
+                whileTap={{ scale: 0.94 }}
+                drag
+                dragSnapToOrigin
+                dragElastic={0.15}
+                dragTransition={dragBounce}
+                whileDrag={dragWhile}
+                {...dragSuppress}
+                style={{ touchAction: 'none' }}
+                onClick={(e) => { dragSuppress.onClick(e); if (!e.defaultPrevented) replay() }}
+                className="sticker-btn bg-green text-text-1 font-display font-bold text-sm px-5 py-2 rounded-full cursor-grab active:cursor-grabbing"
+              >
                 Play again
               </motion.button>
             </>
@@ -268,7 +288,18 @@ export default function ArkanoidWidget() {
           {phase === 'lost' && (
             <>
               <p className="font-display font-bold text-lg text-text-1">Ball dropped — try again?</p>
-              <motion.button whileTap={{ scale: 0.94 }} onClick={replay} className="sticker-btn bg-pink text-white font-display font-bold text-sm px-5 py-2 rounded-full">
+              <motion.button
+                whileTap={{ scale: 0.94 }}
+                drag
+                dragSnapToOrigin
+                dragElastic={0.15}
+                dragTransition={dragBounce}
+                whileDrag={dragWhile}
+                {...dragSuppress}
+                style={{ touchAction: 'none' }}
+                onClick={(e) => { dragSuppress.onClick(e); if (!e.defaultPrevented) replay() }}
+                className="sticker-btn bg-pink text-white font-display font-bold text-sm px-5 py-2 rounded-full cursor-grab active:cursor-grabbing"
+              >
                 Retry
               </motion.button>
             </>

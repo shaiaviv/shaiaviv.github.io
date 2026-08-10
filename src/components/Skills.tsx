@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import RevealText from './RevealText'
+import { dragBounce, dragWhile, onDragUnlock } from '../lib/dragProps'
 
 const skillsRow1 = [
   { name: 'JavaScript', icon: '⚡', color: 'bg-green/40' },
@@ -27,8 +28,14 @@ function SkillBadge({ name, icon, color, tilt }: { name: string; icon: string; c
   return (
     <motion.div
       whileHover={{ rotate: 0, y: -4, scale: 1.06 }}
-      style={{ rotate: tilt }}
-      className={`chip flex items-center gap-2.5 px-4 py-2.5 rounded-2xl flex-shrink-0 select-none mr-3 bg-surface ${color}`}
+      drag
+      dragSnapToOrigin
+      dragElastic={0.15}
+      dragTransition={dragBounce}
+      whileDrag={dragWhile}
+      onDragStart={onDragUnlock}
+      style={{ rotate: tilt, touchAction: 'none' }}
+      className={`chip flex items-center gap-2.5 px-4 py-2.5 rounded-2xl flex-shrink-0 select-none mr-3 bg-surface cursor-grab active:cursor-grabbing ${color}`}
     >
       <span className="text-base leading-none">{icon}</span>
       <span className="text-sm font-bold text-text-1 whitespace-nowrap">{name}</span>
@@ -54,7 +61,14 @@ export default function Skills() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="section-label mb-6"
+            drag
+            dragSnapToOrigin
+            dragElastic={0.15}
+            dragTransition={dragBounce}
+            whileDrag={dragWhile}
+            onDragStart={onDragUnlock}
+            style={{ touchAction: 'none' }}
+            className="section-label mb-6 inline-flex cursor-grab active:cursor-grabbing select-none"
           >
             Skills
           </motion.div>

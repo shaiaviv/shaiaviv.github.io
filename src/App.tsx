@@ -9,7 +9,7 @@ import Projects from './components/Projects'
 import Skills from './components/Skills'
 import Contact from './components/Contact'
 import AchievementToasts from './components/AchievementToasts'
-import { unlockAchievement } from './lib/achievements'
+import { unlockAchievement, ACHIEVEMENTS } from './lib/achievements'
 import { burstConfetti } from './lib/confetti'
 
 const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']
@@ -25,12 +25,7 @@ export default function App() {
       if (progress.join(',') === KONAMI.join(',')) {
         setPartyMode(true)
         burstConfetti(window.innerWidth / 2, window.innerHeight / 2, 140)
-        unlockAchievement({
-          id: 'konami',
-          emoji: '🎉',
-          title: 'Konami Code!',
-          message: "You know the classics. Respect.",
-        })
+        unlockAchievement(ACHIEVEMENTS.konami)
         setTimeout(() => setPartyMode(false), 2400)
       }
     }

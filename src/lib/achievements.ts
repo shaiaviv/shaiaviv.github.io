@@ -5,13 +5,74 @@ export interface Achievement {
   message: string
 }
 
+/**
+ * Single source of truth for every easter egg on the site — the progress
+ * counter's "total" is just this object's size, so adding a new egg here
+ * automatically updates the hunt.
+ */
+export const ACHIEVEMENTS: Record<string, Achievement> = {
+  draggedSomething: {
+    id: 'dragged-something',
+    emoji: '🫳',
+    title: 'Fidgety!',
+    message: 'You found out things on this page can be grabbed and flung around.',
+  },
+  metaSentence: {
+    id: 'easter-egg-sentence',
+    emoji: '💃',
+    title: 'Meta easter egg!',
+    message: 'You clicked the sentence about easter eggs. Very on brand.',
+  },
+  konami: {
+    id: 'konami',
+    emoji: '🎉',
+    title: 'Konami Code!',
+    message: 'You know the classics. Respect.',
+  },
+  arkanoidStart: {
+    id: 'arkanoid-start',
+    emoji: '🕹️',
+    title: 'Game on!',
+    message: 'You started an actual playable Arkanoid.',
+  },
+  arkanoidWin: {
+    id: 'arkanoid-win',
+    emoji: '🏆',
+    title: 'Brick breaker!',
+    message: 'You actually cleared the board. Nice.',
+  },
+  backgroundBalls: {
+    id: 'background-balls',
+    emoji: '🫧',
+    title: 'Poke poke!',
+    message: 'You noticed the background blobs dodge your cursor.',
+  },
+  saidHello: {
+    id: 'said-hello',
+    emoji: '👋',
+    title: 'Nice!',
+    message: "Hope you actually hit send — I'll write back.",
+  },
+}
+
+export const TOTAL_ACHIEVEMENTS = Object.keys(ACHIEVEMENTS).length
+
 export const ACHIEVEMENT_EVENT = 'portfolio:achievement'
 
-const seen = new Set<string>()
+export interface AchievementProgress {
+  count: number
+  total: number
+}
 
-/** Dispatches a toast once per session for a given achievement id. */
+export type AchievementToast = Achievement & AchievementProgress
+
+// Session-only — resets on every refresh, intentionally not persisted.
+const found = new Set<string>()
+
+/** Dispatches a toast (carrying its own progress snapshot) once per achievement id, for this page load only. */
 export function unlockAchievement(achievement: Achievement) {
-  if (seen.has(achievement.id)) return
-  seen.add(achievement.id)
-  window.dispatchEvent(new CustomEvent<Achievement>(ACHIEVEMENT_EVENT, { detail: achievement }))
+  if (found.has(achievement.id)) return
+  found.add(achievement.id)
+  const detail: AchievementToast = { ...achievement, count: found.size, total: TOTAL_ACHIEVEMENTS }
+  window.dispatchEvent(new CustomEvent<AchievementToast>(ACHIEVEMENT_EVENT, { detail }))
 }

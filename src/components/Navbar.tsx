@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { dragBounce, dragWhile } from '../lib/dragProps'
+import { useDragSuppressClick } from '../hooks/useDragSuppressClick'
 
 const links = [
   { label: 'About', href: '#about' },
@@ -11,6 +13,7 @@ const links = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [activeSection, setActiveSection] = useState('')
+  const dragSuppress = useDragSuppressClick()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30)
@@ -45,8 +48,15 @@ export default function Navbar() {
       >
         <motion.a
           href="#"
+          drag
+          dragSnapToOrigin
+          dragElastic={0.15}
+          dragTransition={dragBounce}
+          whileDrag={dragWhile}
           whileHover={{ rotate: -6, scale: 1.05 }}
-          className="font-display text-sm font-bold tracking-wide pl-2.5 pr-1"
+          {...dragSuppress}
+          style={{ touchAction: 'none' }}
+          className="font-display text-sm font-bold tracking-wide pl-2.5 pr-1 cursor-grab active:cursor-grabbing select-none"
         >
           <span className="text-accent">Shai</span>
           <span className="text-text-1">.dev</span>
@@ -57,9 +67,16 @@ export default function Navbar() {
             const isActive = activeSection === link.href.slice(1)
             return (
               <li key={link.href}>
-                <a
+                <motion.a
                   href={link.href}
-                  className={`relative text-sm px-3 py-1.5 rounded-full transition-colors duration-200 font-bold ${
+                  drag
+                  dragSnapToOrigin
+                  dragElastic={0.15}
+                  dragTransition={dragBounce}
+                  whileDrag={dragWhile}
+                  {...dragSuppress}
+                  style={{ touchAction: 'none' }}
+                  className={`relative text-sm px-3 py-1.5 rounded-full transition-colors duration-200 font-bold inline-block cursor-grab active:cursor-grabbing select-none ${
                     isActive ? 'text-white' : 'text-text-2 hover:text-text-1'
                   }`}
                 >
@@ -71,31 +88,45 @@ export default function Navbar() {
                     />
                   )}
                   {link.label}
-                </a>
+                </motion.a>
               </li>
             )
           })}
           <li>
-            <a
+            <motion.a
               href="/resume.pdf"
               target="_blank"
               rel="noopener noreferrer"
-              className="sticker-btn text-xs font-mono font-bold text-text-1 bg-green ml-1 px-3 py-1.5 rounded-full inline-block"
+              drag
+              dragSnapToOrigin
+              dragElastic={0.15}
+              dragTransition={dragBounce}
+              whileDrag={dragWhile}
+              {...dragSuppress}
+              style={{ touchAction: 'none' }}
+              className="sticker-btn text-xs font-mono font-bold text-text-1 bg-green ml-1 px-3 py-1.5 rounded-full inline-block cursor-grab active:cursor-grabbing select-none"
             >
               Resume
-            </a>
+            </motion.a>
           </li>
         </ul>
 
         {/* Compact mobile-only resume link — full link list is hidden below sm */}
-        <a
+        <motion.a
           href="/resume.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          className="sticker-btn sm:hidden text-xs font-mono font-bold text-text-1 bg-green px-3 py-1.5 rounded-full inline-block"
+          drag
+          dragSnapToOrigin
+          dragElastic={0.15}
+          dragTransition={dragBounce}
+          whileDrag={dragWhile}
+          {...dragSuppress}
+          style={{ touchAction: 'none' }}
+          className="sticker-btn sm:hidden text-xs font-mono font-bold text-text-1 bg-green px-3 py-1.5 rounded-full inline-block cursor-grab active:cursor-grabbing select-none"
         >
           Resume
-        </a>
+        </motion.a>
       </div>
     </motion.nav>
   )

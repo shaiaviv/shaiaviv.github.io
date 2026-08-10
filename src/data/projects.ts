@@ -15,22 +15,6 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    name: 'Movie Match',
-    description:
-      'Real-time collaborative movie matching app where users in shared rooms swipe on movies and match when both like the same film. Built with Socket.io, React 18, and TMDB API.',
-    language: 'JavaScript',
-    tags: ['React', 'Socket.io', 'Node.js', 'Vercel'],
-    repo: 'https://github.com/shaiaviv/movie-match',
-    live: 'https://movie-match-flame.vercel.app',
-    screenshots: [
-      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-home.png', caption: 'Home' },
-      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-filters.png', caption: 'Filters & Room Setup' },
-      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-join.png', caption: 'Join a Room' },
-      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-swiping.png', caption: 'Swiping' },
-      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-match.png', caption: "It's a Match" },
-    ],
-  },
-  {
     name: 'RecipeWizard',
     description:
       'iOS app that auto-extracts recipes from TikTok & Instagram Reels using AI. Share a video, Claude AI reads the caption and returns structured ingredients, steps, and cook time, saved instantly to your recipe book.',
@@ -46,6 +30,22 @@ export const projects: Project[] = [
       { src: 'https://raw.githubusercontent.com/shaiaviv/recipewizard/main/docs/screenshots/06_recipe_detail.png', caption: 'Recipe detail' },
       { src: 'https://raw.githubusercontent.com/shaiaviv/recipewizard/main/docs/screenshots/07_category_filter.png', caption: 'Smart category filters' },
       { src: 'https://raw.githubusercontent.com/shaiaviv/recipewizard/main/docs/screenshots/08_ai_image.png', caption: 'AI-generated illustrations' },
+    ],
+  },
+  {
+    name: 'Movie Match',
+    description:
+      'Real-time collaborative movie matching app where users in shared rooms swipe on movies and match when both like the same film. Built with Socket.io, React 18, and TMDB API.',
+    language: 'JavaScript',
+    tags: ['React', 'Socket.io', 'Node.js', 'Vercel'],
+    repo: 'https://github.com/shaiaviv/movie-match',
+    live: 'https://movie-match-flame.vercel.app',
+    screenshots: [
+      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-home.png', caption: 'Home' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-filters.png', caption: 'Filters & Room Setup' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-join.png', caption: 'Join a Room' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-swiping.png', caption: 'Swiping' },
+      { src: 'https://raw.githubusercontent.com/shaiaviv/movie-match/main/docs/screenshot-match.png', caption: "It's a Match" },
     ],
   },
   {

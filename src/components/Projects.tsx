@@ -3,9 +3,10 @@ import { projects } from '../data/projects'
 import ProjectCard from './ProjectCard'
 import FeaturedCard from './FeaturedCard'
 import RevealText from './RevealText'
+import { dragBounce, dragWhile, onDragUnlock } from '../lib/dragProps'
 
 export default function Projects() {
-  const [featured, ...rest] = projects
+  const [featured1, featured2, ...rest] = projects
 
   return (
     <section id="projects" className="py-32 px-6">
@@ -17,7 +18,14 @@ export default function Projects() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="section-label mb-6"
+            drag
+            dragSnapToOrigin
+            dragElastic={0.15}
+            dragTransition={dragBounce}
+            whileDrag={dragWhile}
+            onDragStart={onDragUnlock}
+            style={{ touchAction: 'none' }}
+            className="section-label mb-6 inline-flex cursor-grab active:cursor-grabbing select-none"
           >
             Projects
           </motion.div>
@@ -29,16 +37,25 @@ export default function Projects() {
           </h3>
         </div>
 
-        {/* Featured project */}
-        <motion.div
-          initial={{ opacity: 0, y: 32 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-5"
-        >
-          <FeaturedCard project={featured} />
-        </motion.div>
+        {/* Two flagship projects, equal size, side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5 lg:items-stretch">
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <FeaturedCard project={featured1} />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ delay: 0.1, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <FeaturedCard project={featured2} />
+          </motion.div>
+        </div>
 
         {/* 2-column mason grid — odd cards are offset down, creating visual depth and rhythm */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:items-start">

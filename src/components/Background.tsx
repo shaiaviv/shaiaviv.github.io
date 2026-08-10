@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { motion, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
+import { unlockAchievement, ACHIEVEMENTS } from '../lib/achievements'
 
 const BALL_COLORS = [
   'rgba(108, 92, 231, 0.55)',  // violet
@@ -100,6 +101,7 @@ export default function Background() {
           const force = (1 - dist / REPEL_DIST) * 0.6
           b.vx += (dx / (dist || 1)) * force
           b.vy += (dy / (dist || 1)) * force
+          unlockAchievement(ACHIEVEMENTS.backgroundBalls)
         }
 
         // gentle speed cap so repelled balls settle back down

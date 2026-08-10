@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../data/projects'
 import ScreenshotLightbox from './ScreenshotLightbox'
+import { dragBounce, dragWhile } from '../lib/dragProps'
+import { useDragSuppressClick } from '../hooks/useDragSuppressClick'
 
 const languageColors: Record<string, string> = {
   JavaScript: '#ffc23c',
@@ -16,6 +18,7 @@ export default function FeaturedCard({ project }: { project: Project }) {
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const hasScreenshots = !!project.screenshots?.length
+  const dragSuppress = useDragSuppressClick()
 
   return (
     <>
@@ -33,9 +36,9 @@ export default function FeaturedCard({ project }: { project: Project }) {
         }
       }}
       aria-label={project.repo ? `Open ${project.name} on GitHub` : undefined}
-      className={`sticker bg-surface rounded-[28px] relative ${project.repo ? 'cursor-pointer' : ''}`}
+      className={`sticker bg-surface rounded-[28px] relative h-full flex flex-col ${project.repo ? 'cursor-pointer' : ''}`}
     >
-      <div className="relative z-10 rounded-[25px] overflow-hidden">
+      <div className="relative z-10 rounded-[25px] overflow-hidden flex-1 flex flex-col">
         {/* Image — the star of the card */}
         {hasScreenshots && (
           <motion.button
@@ -62,23 +65,45 @@ export default function FeaturedCard({ project }: { project: Project }) {
                 <span className="w-2.5 h-2.5 rounded-full border border-text-1" style={{ backgroundColor: languageColors[project.language] ?? '#8a8172' }} />
                 <span className="font-mono text-[0.65rem] text-text-1 font-bold">{project.language}</span>
               </span>
-              <span className="chip font-mono text-[0.65rem] text-text-1 bg-green px-2.5 py-1 rounded-full font-bold">
-                Live
-              </span>
+              {project.live && (
+                <span className="chip font-mono text-[0.65rem] text-text-1 bg-green px-2.5 py-1 rounded-full font-bold">
+                  Live
+                </span>
+              )}
             </div>
           </motion.button>
         )}
 
         {/* Content */}
-        <div className="p-8 md:p-10 flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+        <div className="p-8 md:p-10 flex-1 flex flex-col gap-6">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <span className="font-mono text-xs text-accent tracking-widest uppercase font-bold">★ Featured Project</span>
+              <motion.span
+                drag
+                dragSnapToOrigin
+                dragElastic={0.15}
+                dragTransition={dragBounce}
+                whileDrag={dragWhile}
+                {...dragSuppress}
+                style={{ touchAction: 'none' }}
+                className="font-mono text-xs text-accent tracking-widest uppercase font-bold inline-block cursor-grab active:cursor-grabbing select-none"
+              >
+                ★ Featured Project
+              </motion.span>
               {!hasScreenshots && (
-                <span className="chip flex items-center gap-1.5 bg-surface-2 px-2.5 py-1 rounded-full ml-1">
+                <motion.span
+                  drag
+                  dragSnapToOrigin
+                  dragElastic={0.15}
+                  dragTransition={dragBounce}
+                  whileDrag={dragWhile}
+                  {...dragSuppress}
+                  style={{ touchAction: 'none' }}
+                  className="chip flex items-center gap-1.5 bg-surface-2 px-2.5 py-1 rounded-full ml-1 cursor-grab active:cursor-grabbing select-none"
+                >
                   <span className="w-2 h-2 rounded-full border border-text-1" style={{ backgroundColor: languageColors[project.language] ?? '#8a8172' }} />
                   <span className="font-mono text-[0.65rem] text-text-1 font-bold">{project.language}</span>
-                </span>
+                </motion.span>
               )}
             </div>
 
@@ -92,18 +117,25 @@ export default function FeaturedCard({ project }: { project: Project }) {
 
             <div className="flex flex-wrap gap-2">
               {project.tags.map((tag, i) => (
-                <span
+                <motion.span
                   key={tag}
-                  className="chip font-mono text-xs text-text-1 bg-surface-2 px-3 py-1 rounded-lg"
-                  style={{ transform: `rotate(${i % 2 === 0 ? -2 : 2}deg)` }}
+                  drag
+                  dragSnapToOrigin
+                  dragElastic={0.15}
+                  dragTransition={dragBounce}
+                  whileDrag={dragWhile}
+                  whileHover={{ rotate: 0, y: -2 }}
+                  {...dragSuppress}
+                  style={{ rotate: i % 2 === 0 ? -2 : 2, touchAction: 'none' }}
+                  className="chip font-mono text-xs text-text-1 bg-surface-2 px-3 py-1 rounded-lg inline-block cursor-grab active:cursor-grabbing select-none"
                 >
                   {tag}
-                </span>
+                </motion.span>
               ))}
             </div>
           </div>
 
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-4 shrink-0 mt-auto">
             {project.repo && (
               <a
                 href={project.repo}

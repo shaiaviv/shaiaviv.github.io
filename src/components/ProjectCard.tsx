@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import type { Project } from '../data/projects'
 import ScreenshotLightbox from './ScreenshotLightbox'
 import ArkanoidWidget from './ArkanoidWidget'
+import { dragBounce, dragWhile } from '../lib/dragProps'
+import { useDragSuppressClick } from '../hooks/useDragSuppressClick'
 
 interface Props {
   project: Project
@@ -27,6 +29,7 @@ export default function ProjectCard({ project, index }: Props) {
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const baseRotate = index % 2 === 0 ? -1.5 : 1.5
   const isArkanoid = project.name === 'Arkanoid Game'
+  const dragSuppress = useDragSuppressClick()
 
   return (
     <>
@@ -53,7 +56,14 @@ export default function ProjectCard({ project, index }: Props) {
         <motion.div
           whileHover={{ rotate: 12, scale: 1.1 }}
           transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-          className="chip p-2.5 rounded-xl bg-accent-dim"
+          drag
+          dragSnapToOrigin
+          dragElastic={0.15}
+          dragTransition={dragBounce}
+          whileDrag={dragWhile}
+          {...dragSuppress}
+          style={{ touchAction: 'none' }}
+          className="chip p-2.5 rounded-xl bg-accent-dim cursor-grab active:cursor-grabbing"
         >
           <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -130,10 +140,20 @@ export default function ProjectCard({ project, index }: Props) {
         </div>
         <div className="flex gap-1.5 flex-wrap">
           {project.tags.slice(0, 3).map((tag) => (
-            <span key={tag}
-              className="chip font-mono text-xs text-text-1 bg-surface-2 px-2 py-0.5 rounded-md">
+            <motion.span
+              key={tag}
+              drag
+              dragSnapToOrigin
+              dragElastic={0.15}
+              dragTransition={dragBounce}
+              whileDrag={dragWhile}
+              whileHover={{ y: -2 }}
+              {...dragSuppress}
+              style={{ touchAction: 'none' }}
+              className="chip font-mono text-xs text-text-1 bg-surface-2 px-2 py-0.5 rounded-md inline-block cursor-grab active:cursor-grabbing select-none"
+            >
               {tag}
-            </span>
+            </motion.span>
           ))}
         </div>
       </div>

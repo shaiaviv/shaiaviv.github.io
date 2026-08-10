@@ -2,7 +2,9 @@ import { useRef } from 'react'
 import { motion, useMotionValue, useSpring } from 'framer-motion'
 import RevealText from './RevealText'
 import { burstConfetti } from '../lib/confetti'
-import { unlockAchievement } from '../lib/achievements'
+import { unlockAchievement, ACHIEVEMENTS } from '../lib/achievements'
+import { dragBounce, dragWhile, onDragUnlock } from '../lib/dragProps'
+import { useDragSuppressClick } from '../hooks/useDragSuppressClick'
 
 function MagneticLink({
   href, children, primary, external, onClick,
@@ -11,17 +13,20 @@ function MagneticLink({
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
 }) {
   const ref = useRef<HTMLAnchorElement>(null)
+  const isDragging = useRef(false)
   const x = useMotionValue(0)
   const y = useMotionValue(0)
   const springX = useSpring(x, { stiffness: 200, damping: 18 })
   const springY = useSpring(y, { stiffness: 200, damping: 18 })
+  const dragSuppress = useDragSuppressClick()
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging.current) return
     const rect = ref.current!.getBoundingClientRect()
     x.set((e.clientX - rect.left - rect.width / 2) * 0.3)
     y.set((e.clientY - rect.top - rect.height / 2) * 0.3)
   }
-  const handleMouseLeave = () => { x.set(0); y.set(0) }
+  const handleMouseLeave = () => { if (!isDragging.current) { x.set(0); y.set(0) } }
 
   return (
     <motion.a
@@ -29,15 +34,26 @@ function MagneticLink({
       href={href}
       target={external ? '_blank' : undefined}
       rel={external ? 'noopener noreferrer' : undefined}
-      style={{ x: springX, y: springY }}
+      style={{ x: springX, y: springY, touchAction: 'none' }}
+      drag
+      dragSnapToOrigin
+      dragElastic={0.15}
+      dragTransition={dragBounce}
+      whileDrag={dragWhile}
       whileTap={{ scale: 0.94 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onClick={onClick}
+      onDragStart={() => { isDragging.current = true; dragSuppress.onDragStart() }}
+      onDrag={dragSuppress.onDrag}
+      onDragEnd={() => { isDragging.current = false }}
+      onClick={(e) => {
+        dragSuppress.onClick(e)
+        if (!e.defaultPrevented) onClick?.(e)
+      }}
       className={
         primary
-          ? 'sticker-btn px-8 py-4 bg-accent hover:bg-accent-hover text-white rounded-2xl font-bold text-sm transition-colors duration-200 inline-block tracking-wide'
-          : 'sticker-btn p-3.5 rounded-2xl bg-surface text-text-1 hover:bg-surface-2 transition-colors duration-200 inline-flex items-center justify-center'
+          ? 'sticker-btn px-8 py-4 bg-accent hover:bg-accent-hover text-white rounded-2xl font-bold text-sm transition-colors duration-200 inline-block tracking-wide cursor-grab active:cursor-grabbing'
+          : 'sticker-btn p-3.5 rounded-2xl bg-surface text-text-1 hover:bg-surface-2 transition-colors duration-200 inline-flex items-center justify-center cursor-grab active:cursor-grabbing'
       }
     >
       {children}
@@ -51,12 +67,7 @@ export default function Contact() {
   const handleSayHello = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 80)
-    unlockAchievement({
-      id: 'said-hello',
-      emoji: '👋',
-      title: 'Nice!',
-      message: "Hope you actually hit send — I'll write back.",
-    })
+    unlockAchievement(ACHIEVEMENTS.saidHello)
   }
 
   return (
@@ -88,7 +99,18 @@ export default function Contact() {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="text-center max-w-xl mx-auto"
         >
-          <div className="section-label justify-center mb-8">Contact</div>
+          <motion.div
+            drag
+            dragSnapToOrigin
+            dragElastic={0.15}
+            dragTransition={dragBounce}
+            whileDrag={dragWhile}
+            onDragStart={onDragUnlock}
+            style={{ touchAction: 'none' }}
+            className="section-label justify-center mb-8 inline-flex cursor-grab active:cursor-grabbing select-none"
+          >
+            Contact
+          </motion.div>
 
           <h3
             className="font-display font-bold text-text-1 tracking-tight leading-tight mb-6"
