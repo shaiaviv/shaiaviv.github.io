@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { Screenshot } from '../data/projects'
-import { unlockFeature } from '../lib/unlocks'
+import { unlockFeature, markScreenshotSeen, everyGallerySeen } from '../lib/unlocks'
 
 interface Props {
   screenshots: Screenshot[]
@@ -17,24 +17,31 @@ export default function ScreenshotLightbox({ screenshots, projectName, isOpen, i
   const total = screenshots.length
 
   /*
-   * Which shots this visit actually saw. Both easter-egg unlocks are earned in
-   * here — opening the gallery at all unlocks drawing, seeing every last shot
-   * unlocks gravity — but they only fire on CLOSE. Announcing them live would
-   * drop a banner over the screenshots the visitor came to look at, which would
-   * sabotage the exact behaviour the rewards exist to encourage.
+   * Both easter-egg unlocks are earned in here — opening a gallery at all
+   * unlocks drawing, seeing every screenshot of EVERY project unlocks gravity —
+   * but they only ever fire on CLOSE. Announcing them live would drop a banner
+   * over the screenshots the visitor came to look at, sabotaging the exact
+   * behaviour the rewards exist to encourage.
+   *
+   * Views are recorded as they happen, into a module-level tally keyed by
+   * project, so progress survives closing a gallery and spans both featured
+   * projects — each card mounts its own lightbox, so local state could never see
+   * the whole picture.
    */
-  const viewed = useRef(new Set<number>())
+  const opened = useRef(false)
 
   useEffect(() => {
-    if (isOpen) viewed.current.add(index)
-  }, [isOpen, index])
+    if (!isOpen) return
+    opened.current = true
+    markScreenshotSeen(projectName, index)
+  }, [isOpen, index, projectName])
 
   const handleClose = useCallback(() => {
-    if (viewed.current.size > 0) unlockFeature('shapes')
-    if (total > 0 && viewed.current.size >= total) unlockFeature('gravity')
-    viewed.current = new Set()
+    if (opened.current) unlockFeature('shapes')
+    if (everyGallerySeen()) unlockFeature('gravity')
+    opened.current = false
     onClose()
-  }, [total, onClose])
+  }, [onClose])
 
   const goPrev = useCallback(() => onIndexChange((index - 1 + total) % total), [index, total, onIndexChange])
   const goNext = useCallback(() => onIndexChange((index + 1) % total), [index, total, onIndexChange])
