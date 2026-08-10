@@ -15,7 +15,7 @@ import { burstConfetti } from './lib/confetti'
 
 const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']
 
-const SWEEP_SECONDS = 2.5
+const SWEEP_SECONDS = 5
 
 /**
  * One white circle in `mix-blend-mode: difference`, grown from nothing to
@@ -134,7 +134,33 @@ export default function App() {
           <Contact />
         </main>
         <footer className="py-10 text-center font-mono text-xs text-text-2 border-t-[3px] border-text-1/10 tracking-widest uppercase font-bold">
-          Designed &amp; built by Shai Aviv — psst, try the konami code
+          Designed &amp; built by Shai Aviv — psst, try the{' '}
+          {/*
+            Both labels sit in the SAME grid cell, so the box is always as wide
+            as the wider of the two and the sentence never reflows on hover.
+            Crossfading with an absolutely positioned overlay would collapse the
+            box to zero width and shove the rest of the line around instead.
+
+            The compact ↑↑↓↓←→←→BA form is 10 characters against the label's 11,
+            so the reserved width is near identical and the centred footer
+            doesn't sit visibly off-centre while idle.
+          */}
+          <span
+            tabIndex={0}
+            className="group relative inline-grid cursor-help underline decoration-dotted decoration-text-1/30 underline-offset-4 outline-none"
+          >
+            <span className="[grid-area:1/1] transition-opacity duration-300 group-hover:opacity-0 group-focus:opacity-0">
+              konami code
+            </span>
+            {/* aria-hidden: screen readers get the phrase, which is the part
+                that's actually searchable — the glyphs are a visual reveal. */}
+            <span
+              aria-hidden="true"
+              className="[grid-area:1/1] text-accent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus:opacity-100"
+            >
+              ↑↑↓↓←→←→BA
+            </span>
+          </span>
         </footer>
       </div>
     </div>
