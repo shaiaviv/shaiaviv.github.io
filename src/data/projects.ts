@@ -56,7 +56,7 @@ export const projects: Project[] = [
   {
     name: 'AI-lbum',
     description:
-      'Full-stack mobile app for AI-powered photo album generation using facial recognition. Built with Flutter (Dart), Node.js, Firebase, and face-api.js (TensorFlow.js).',
+      'Full-stack mobile app for AI-powered photo album generation using facial recognition. AI-lbum was built with Flutter (Dart), Node.js, Firebase, and face-api.js (TensorFlow.js).',
     hint: 'Reading closely earns rewards: Chase and click one of the colored background blobs.',
     language: 'Dart',
     tags: ['Flutter', 'Firebase', 'AI', 'Node.js'],
