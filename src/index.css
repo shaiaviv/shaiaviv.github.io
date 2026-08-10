@@ -53,16 +53,24 @@
   }
 
   .sticker {
+    /* transform is intentionally NOT transitioned here — many .sticker
+       elements are Framer Motion components that write `transform` via
+       inline style every animation frame (drag, whileHover, custom
+       animate). A CSS transition on the same property fights that: it
+       keeps chasing Motion's constantly-moving target, then gets a chance
+       to "catch up" once Motion settles, producing a late residual wobble
+       that reads as violent shaking right as a hover starts or ends. */
     background: #ffffff;
     border: 3px solid #171310;
     box-shadow: 6px 6px 0 0 #171310;
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: box-shadow 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .sticker-btn {
+    /* See .sticker above — same reasoning for omitting transform here. */
     border: 3px solid #171310;
     box-shadow: 4px 4px 0 0 #171310;
-    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: box-shadow 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .sticker-btn:hover {
@@ -76,6 +84,10 @@
   }
 
   .chip {
+    /* z-index only affects positioned elements — without this, whileDrag's
+       zIndex:50 silently does nothing and a dragged chip can render behind
+       nearby siblings instead of on top of them. */
+    position: relative;
     border: 2px solid #171310;
     box-shadow: 3px 3px 0 0 #171310;
   }

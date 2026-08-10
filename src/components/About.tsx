@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import RevealText from './RevealText'
 import { dragBounce, dragWhile, onDragUnlock } from '../lib/dragProps'
@@ -23,6 +23,7 @@ const highlights = [
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null)
+  const [photoHovered, setPhotoHovered] = useState(false)
 
   return (
     <section id="about" ref={sectionRef} className="py-32 px-6">
@@ -87,13 +88,30 @@ export default function About() {
               </div>
             </motion.div>
 
-            {/* Polaroid photo */}
-            <motion.div variants={itemVariants} className="flex-shrink-0 self-start">
+            {/*
+              Polaroid photo — the hover trigger is this outer wrapper, which
+              only ever animates once (its whileInView entrance) and is
+              otherwise static, so its hit-box is stable. The rotate/lift
+              lives on the inner div's `animate` instead of a same-element
+              whileHover: rotating the photo on the same element that
+              triggers hover shifts hit-testing near the corners, and
+              Chrome/Firefox drop :hover the instant the element moves out
+              from under a stationary cursor (no pointer movement needed),
+              which snaps it back and re-enters hover forever — a
+              self-cancelling flicker. Drag stays on the inner element since
+              drag uses pointer capture, not hover hit-testing, so it isn't
+              susceptible to the same loop.
+            */}
+            <motion.div
+              variants={itemVariants}
+              className="flex-shrink-0 self-start"
+              onHoverStart={() => setPhotoHovered(true)}
+              onHoverEnd={() => setPhotoHovered(false)}
+            >
               <motion.div
                 className="relative bg-surface sticker p-3 pb-6 rounded-lg cursor-grab active:cursor-grabbing select-none"
-                initial={{ rotate: -4 }}
-                whileHover={{ rotate: 0, scale: 1.03, y: -4 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                animate={photoHovered ? { rotate: 0, scale: 1.03, y: -4 } : { rotate: -4, scale: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                 drag
                 dragSnapToOrigin
                 dragElastic={0.15}

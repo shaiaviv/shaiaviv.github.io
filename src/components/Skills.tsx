@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import RevealText from './RevealText'
 import { dragBounce, dragWhile, onDragUnlock } from '../lib/dragProps'
@@ -24,7 +25,12 @@ const skillsRow2 = [
   { name: 'Claude Code', icon: '🤖', color: 'bg-green/40' },
 ]
 
-function SkillBadge({ name, icon, color, tilt }: { name: string; icon: string; color: string; tilt: number }) {
+function SkillBadge({
+  name, icon, color, tilt, onDragStart, onDragEnd,
+}: {
+  name: string; icon: string; color: string; tilt: number
+  onDragStart?: () => void; onDragEnd?: () => void
+}) {
   return (
     <motion.div
       whileHover={{ rotate: 0, y: -4, scale: 1.06 }}
@@ -33,7 +39,8 @@ function SkillBadge({ name, icon, color, tilt }: { name: string; icon: string; c
       dragElastic={0.15}
       dragTransition={dragBounce}
       whileDrag={dragWhile}
-      onDragStart={onDragUnlock}
+      onDragStart={() => { onDragUnlock(); onDragStart?.() }}
+      onDragEnd={onDragEnd}
       style={{ rotate: tilt, touchAction: 'none' }}
       className={`chip flex items-center gap-2.5 px-4 py-2.5 rounded-2xl flex-shrink-0 select-none mr-3 bg-surface cursor-grab active:cursor-grabbing ${color}`}
     >
@@ -46,6 +53,11 @@ function SkillBadge({ name, icon, color, tilt }: { name: string; icon: string; c
 export default function Skills() {
   const doubled1 = [...skillsRow1, ...skillsRow1, ...skillsRow1, ...skillsRow1]
   const doubled2 = [...skillsRow2, ...skillsRow2, ...skillsRow2, ...skillsRow2]
+  // .marquee-track clips overflow to fake the infinite-scroll illusion, which
+  // also clips a badge the instant a drag carries it outside that thin row —
+  // lift the clip on just the row being dragged, restore it once released.
+  const [draggingRow1, setDraggingRow1] = useState(false)
+  const [draggingRow2, setDraggingRow2] = useState(false)
 
   return (
     <section id="skills" className="py-32 overflow-hidden relative">
@@ -91,14 +103,32 @@ export default function Skills() {
         transition={{ duration: 0.8, delay: 0.2 }}
         className="space-y-4 relative z-10"
       >
-        <div className="marquee-track py-3">
+        <div
+          className="marquee-track py-3"
+          style={draggingRow1 ? { overflow: 'visible', maskImage: 'none', WebkitMaskImage: 'none' } : undefined}
+        >
           <div className="marquee-row marquee-row-left">
-            {doubled1.map((skill, i) => <SkillBadge key={`r1-${i}`} {...skill} tilt={i % 2 === 0 ? -3 : 3} />)}
+            {doubled1.map((skill, i) => (
+              <SkillBadge
+                key={`r1-${i}`} {...skill} tilt={i % 2 === 0 ? -3 : 3}
+                onDragStart={() => setDraggingRow1(true)}
+                onDragEnd={() => setDraggingRow1(false)}
+              />
+            ))}
           </div>
         </div>
-        <div className="marquee-track py-3">
+        <div
+          className="marquee-track py-3"
+          style={draggingRow2 ? { overflow: 'visible', maskImage: 'none', WebkitMaskImage: 'none' } : undefined}
+        >
           <div className="marquee-row marquee-row-right">
-            {doubled2.map((skill, i) => <SkillBadge key={`r2-${i}`} {...skill} tilt={i % 2 === 0 ? 3 : -3} />)}
+            {doubled2.map((skill, i) => (
+              <SkillBadge
+                key={`r2-${i}`} {...skill} tilt={i % 2 === 0 ? 3 : -3}
+                onDragStart={() => setDraggingRow2(true)}
+                onDragEnd={() => setDraggingRow2(false)}
+              />
+            ))}
           </div>
         </div>
       </motion.div>

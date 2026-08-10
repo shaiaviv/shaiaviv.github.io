@@ -183,7 +183,6 @@ export default function ArkanoidWidget() {
           setPhase('won')
           const rect = canvas.getBoundingClientRect()
           burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 90)
-          unlockAchievement(ACHIEVEMENTS.arkanoidWin)
         }
 
         if (ball.y > H + 20) {

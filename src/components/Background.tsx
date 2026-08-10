@@ -8,6 +8,8 @@ const BALL_COLORS = [
   'rgba(255, 194, 60, 0.55)',  // sunshine
   'rgba(6, 214, 160, 0.45)',   // mint
 ]
+// Solid counterparts of BALL_COLORS (same index) for the crisp, unblurred pop particles
+const PARTICLE_COLORS = ['#6c5ce7', '#ff6b57', '#ffc23c', '#06d6a0']
 
 export default function Background() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -35,34 +37,51 @@ export default function Background() {
     return () => window.removeEventListener('mousemove', onMouseMove)
   }, [rawMouseX])
 
-  // ── ambient "desk toy" balls — soft gummy circles that drift and nudge away from the cursor ──
+  // ── ambient "desk toy" balls — soft gummy circles that drift and nudge away
+  // from the cursor. Catch one and click it dead-on and it pops, exploding and
+  // dissolving into the background before quietly reforming elsewhere — a
+  // hidden easter egg with no hover hint (the canvas stays pointer-events-none,
+  // so cursor never changes) and no way to trigger it by accident, since the
+  // achievement only unlocks on an actual click hit, never on proximity alone.
   useEffect(() => {
     const canvas = canvasRef.current!
     const ctx = canvas.getContext('2d')!
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    type Ball = { x: number; y: number; vx: number; vy: number; r: number; color: string }
+    type Ball = {
+      x: number; y: number; vx: number; vy: number; r: number; baseR: number; color: string; colorIndex: number
+      state: 'idle' | 'popping' | 'spawning'
+      t: number
+    }
     let balls: Ball[] = []
 
-    const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      const count = window.innerWidth < 768 ? 6 : 11
-      balls = Array.from({ length: count }, () => ({
+    type Particle = { x: number; y: number; vx: number; vy: number; size: number; color: string; life: number }
+    let particles: Particle[] = []
+
+    const spawnBall = (): Ball => {
+      const colorIndex = Math.floor(Math.random() * BALL_COLORS.length)
+      return {
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         vx: (Math.random() - 0.5) * 0.35,
         vy: (Math.random() - 0.5) * 0.35,
         r: 40 + Math.random() * 70,
-        color: BALL_COLORS[Math.floor(Math.random() * BALL_COLORS.length)],
-      }))
+        baseR: 0,
+        color: BALL_COLORS[colorIndex],
+        colorIndex,
+        state: 'idle',
+        t: 0,
+      }
+    }
+
+    const resize = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+      const count = window.innerWidth < 768 ? 6 : 11
+      balls = Array.from({ length: count }, spawnBall).map((b) => ({ ...b, baseR: b.r }))
     }
     resize()
     window.addEventListener('resize', resize, { passive: true })
-
-    let mouseX = -2000, mouseY = -2000
-    const onMove = (e: MouseEvent) => { mouseX = e.clientX; mouseY = e.clientY }
-    window.addEventListener('mousemove', onMove, { passive: true })
 
     const drawStatic = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -78,30 +97,96 @@ export default function Background() {
 
     if (reduceMotion || isMobile) {
       drawStatic()
-      return () => {
-        window.removeEventListener('resize', resize)
-        window.removeEventListener('mousemove', onMove)
-      }
+      return () => window.removeEventListener('resize', resize)
     }
 
-    let raf: number
+    // Pop is two distinct phases: a quick punchy BURST (grows fast, sharpens
+    // into focus) immediately followed by a DISSOLVE that only starts fading
+    // once the burst has fully landed — the delay is what sells the "pop".
+    const BURST_FRAMES = 14
+    const FADE_FRAMES = 26
+    const POP_FRAMES = BURST_FRAMES + FADE_FRAMES
+    const SPAWN_FRAMES = 40
     const REPEL_DIST = 220
+
+    let mouseX = -2000, mouseY = -2000
+    const onMove = (e: MouseEvent) => { mouseX = e.clientX; mouseY = e.clientY }
+    window.addEventListener('mousemove', onMove, { passive: true })
+
+    const onClick = (e: MouseEvent) => {
+      for (const b of balls) {
+        if (b.state !== 'idle') continue
+        const dx = e.clientX - b.x, dy = e.clientY - b.y
+        if (Math.sqrt(dx * dx + dy * dy) < b.r) {
+          b.state = 'popping'
+          b.t = 0
+          unlockAchievement(ACHIEVEMENTS.backgroundBalls)
+
+          // sharp, unblurred particles flying outward — read clearly against
+          // the soft blurred blobs, the main thing that makes the pop register
+          const particleColor = PARTICLE_COLORS[b.colorIndex]
+          const count = 16
+          for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5
+            const speed = 3 + Math.random() * 4.5
+            particles.push({
+              x: b.x, y: b.y,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              size: 4 + Math.random() * 6,
+              color: particleColor,
+              life: 1,
+            })
+          }
+          break
+        }
+      }
+    }
+    window.addEventListener('click', onClick)
+
+    let raf: number
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       for (const b of balls) {
-        b.x += b.vx
-        b.y += b.vy
+        if (b.state === 'popping') {
+          b.t += 1
+          if (b.t >= POP_FRAMES) {
+            Object.assign(b, spawnBall(), { baseR: 0, state: 'spawning', t: 0 })
+            b.baseR = b.r
+          } else if (b.t <= BURST_FRAMES) {
+            // Phase 1 — burst: fast growth, full opacity, blur sharpens into focus
+            const p = b.t / BURST_FRAMES
+            const r = b.baseR * (1 + p * 1.5)
+            const blurPx = 30 - p * 22
+            ctx.beginPath()
+            ctx.arc(b.x, b.y, r, 0, Math.PI * 2)
+            ctx.fillStyle = b.color
+            ctx.filter = `blur(${blurPx}px)`
+            ctx.fill()
+          } else {
+            // Phase 2 — dissolve: only starts once the burst has fully landed
+            const p = (b.t - BURST_FRAMES) / FADE_FRAMES
+            const r = b.baseR * 2.5 * (1 + p * 0.35)
+            const blurPx = 8 + p * 55
+            ctx.globalAlpha = 1 - p
+            ctx.beginPath()
+            ctx.arc(b.x, b.y, r, 0, Math.PI * 2)
+            ctx.fillStyle = b.color
+            ctx.filter = `blur(${blurPx}px)`
+            ctx.fill()
+            ctx.globalAlpha = 1
+          }
+          continue
+        }
 
-        const dx = b.x - mouseX
-        const dy = b.y - mouseY
+        const dx = b.x - mouseX, dy = b.y - mouseY
         const dist = Math.sqrt(dx * dx + dy * dy)
         if (dist < REPEL_DIST) {
           const force = (1 - dist / REPEL_DIST) * 0.6
           b.vx += (dx / (dist || 1)) * force
           b.vy += (dy / (dist || 1)) * force
-          unlockAchievement(ACHIEVEMENTS.backgroundBalls)
         }
 
         // gentle speed cap so repelled balls settle back down
@@ -114,18 +199,52 @@ export default function Background() {
         b.vx *= 0.985
         b.vy *= 0.985
 
-        if (b.x < -b.r) b.x = canvas.width + b.r
-        if (b.x > canvas.width + b.r) b.x = -b.r
-        if (b.y < -b.r) b.y = canvas.height + b.r
-        if (b.y > canvas.height + b.r) b.y = -b.r
+        b.x += b.vx
+        b.y += b.vy
 
+        // bounce off the viewport edges instead of wrapping — a repelled
+        // ball should never leave the screen, just ricochet back in
+        if (b.x - b.r < 0) { b.x = b.r; b.vx = Math.abs(b.vx) }
+        else if (b.x + b.r > canvas.width) { b.x = canvas.width - b.r; b.vx = -Math.abs(b.vx) }
+        if (b.y - b.r < 0) { b.y = b.r; b.vy = Math.abs(b.vy) }
+        else if (b.y + b.r > canvas.height) { b.y = canvas.height - b.r; b.vy = -Math.abs(b.vy) }
+
+        let alpha = 1
+        if (b.state === 'spawning') {
+          b.t += 1 / SPAWN_FRAMES
+          if (b.t >= 1) { b.state = 'idle'; b.t = 0 }
+          else alpha = b.t
+        }
+
+        ctx.globalAlpha = alpha
         ctx.beginPath()
         ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2)
         ctx.fillStyle = b.color
         ctx.filter = 'blur(30px)'
         ctx.fill()
+        ctx.globalAlpha = 1
       }
       ctx.filter = 'none'
+
+      // pop particle bursts — sharp, unblurred, drawn on top of the blurred blobs
+      if (particles.length) {
+        particles = particles.filter((p) => p.life > 0)
+        for (const p of particles) {
+          p.x += p.vx
+          p.y += p.vy
+          p.vx *= 0.94
+          p.vy *= 0.94
+          p.vy += 0.08
+          p.life -= 0.028
+          if (p.life <= 0) continue
+          ctx.globalAlpha = Math.max(p.life, 0)
+          ctx.beginPath()
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+          ctx.fillStyle = p.color
+          ctx.fill()
+        }
+        ctx.globalAlpha = 1
+      }
 
       raf = requestAnimationFrame(draw)
     }
@@ -135,6 +254,7 @@ export default function Background() {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
       window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('click', onClick)
     }
   }, [])
 

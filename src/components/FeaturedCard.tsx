@@ -17,15 +17,25 @@ const languageColors: Record<string, string> = {
 export default function FeaturedCard({ project }: { project: Project }) {
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const hasScreenshots = !!project.screenshots?.length
   const dragSuppress = useDragSuppressClick()
 
   return (
     <>
+    {/*
+      Hover trigger stays on this outer div, which never rotates or moves —
+      a stable hit-box. The rotate/lift lives on the inner div instead: if
+      the same element both triggered hover and moved itself out from under
+      a stationary cursor, Chrome/Firefox re-hit-test on the layout change
+      and drop :hover with no pointer movement needed, snapping the card
+      back and re-triggering hover in a self-cancelling flicker loop —
+      worst right at the edges the rotate shifts the most. Splitting
+      trigger from visual transform makes that structurally impossible.
+    */}
     <motion.div
-      initial={{ rotate: -0.8 }}
-      whileHover={{ rotate: 0, y: -8 }}
-      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
       onClick={() => { if (project.repo) window.open(project.repo, '_blank', 'noopener,noreferrer') }}
       role={project.repo ? 'link' : undefined}
       tabIndex={project.repo ? 0 : undefined}
@@ -36,7 +46,12 @@ export default function FeaturedCard({ project }: { project: Project }) {
         }
       }}
       aria-label={project.repo ? `Open ${project.name} on GitHub` : undefined}
-      className={`sticker bg-surface rounded-[28px] relative h-full flex flex-col ${project.repo ? 'cursor-pointer' : ''}`}
+      className={`h-full ${project.repo ? 'cursor-pointer' : ''}`}
+    >
+    <motion.div
+      animate={hovered ? { rotate: 0, y: -8 } : { rotate: -0.8, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      className="sticker bg-surface rounded-[28px] relative h-full flex flex-col"
     >
       <div className="relative z-10 rounded-[25px] overflow-hidden flex-1 flex flex-col">
         {/* Image — the star of the card */}
@@ -168,6 +183,7 @@ export default function FeaturedCard({ project }: { project: Project }) {
           </div>
         </div>
       </div>
+    </motion.div>
     </motion.div>
     {hasScreenshots && (
       <ScreenshotLightbox

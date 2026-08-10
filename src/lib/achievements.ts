@@ -35,17 +35,11 @@ export const ACHIEVEMENTS: Record<string, Achievement> = {
     title: 'Game on!',
     message: 'You started an actual playable Arkanoid.',
   },
-  arkanoidWin: {
-    id: 'arkanoid-win',
-    emoji: '🏆',
-    title: 'Brick breaker!',
-    message: 'You actually cleared the board. Nice.',
-  },
   backgroundBalls: {
     id: 'background-balls',
     emoji: '🫧',
-    title: 'Poke poke!',
-    message: 'You noticed the background blobs dodge your cursor.',
+    title: 'Pop!',
+    message: 'You clicked a background blob and popped it. Sneaky.',
   },
   saidHello: {
     id: 'said-hello',

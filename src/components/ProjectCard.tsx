@@ -27,18 +27,32 @@ const HOVER_SHADOW = '10px 10px 0 0 #171310'
 export default function ProjectCard({ project, index }: Props) {
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [hovered, setHovered] = useState(false)
   const baseRotate = index % 2 === 0 ? -1.5 : 1.5
   const isArkanoid = project.name === 'Arkanoid Game'
   const dragSuppress = useDragSuppressClick()
 
   return (
     <>
+    {/*
+      The hover trigger lives on this outer div, which never rotates or
+      translates — its hit-box is completely stable. The visual rotate/lift
+      lives on the inner div below instead. If the SAME element both
+      triggers hover and moves itself out from under a stationary cursor,
+      Chrome/Firefox re-hit-test on the layout change and drop :hover even
+      without any pointer movement, snapping the card back, re-entering
+      hover, and repeating forever — a self-cancelling flicker loop that's
+      most visible near edges/corners where the rotate shifts hit-testing
+      the most. Splitting trigger from visual transform makes that
+      structurally impossible.
+    */}
     <motion.div
-      initial={{ opacity: 0, y: 28, rotate: baseRotate, boxShadow: REST_SHADOW }}
+      initial={{ opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
-      whileHover={{ rotate: 0, x: -3, y: -10, boxShadow: HOVER_SHADOW }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ delay: index * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
       onClick={() => { if (project.repo) window.open(project.repo, '_blank', 'noopener,noreferrer') }}
       role={project.repo ? 'link' : undefined}
       tabIndex={project.repo ? 0 : undefined}
@@ -49,13 +63,22 @@ export default function ProjectCard({ project, index }: Props) {
         }
       }}
       aria-label={project.repo ? `Open ${project.name} on GitHub` : undefined}
-      className={`bg-surface border-[3px] border-text-1 rounded-[24px] p-6 flex flex-col relative h-full ${project.repo ? 'cursor-pointer' : ''}`}
+      className={`h-full ${project.repo ? 'cursor-pointer' : ''}`}
+    >
+    <motion.div
+      animate={
+        hovered
+          ? { rotate: 0, x: -3, y: -10, boxShadow: HOVER_SHADOW }
+          : { rotate: baseRotate, x: 0, y: 0, boxShadow: REST_SHADOW }
+      }
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      className="bg-surface border-[3px] border-text-1 rounded-[24px] p-6 flex flex-col relative h-full"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-5">
         <motion.div
           whileHover={{ rotate: 12, scale: 1.1 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 36 }}
           drag
           dragSnapToOrigin
           dragElastic={0.15}
@@ -157,6 +180,7 @@ export default function ProjectCard({ project, index }: Props) {
           ))}
         </div>
       </div>
+    </motion.div>
     </motion.div>
     {project.screenshots && (
       <ScreenshotLightbox
