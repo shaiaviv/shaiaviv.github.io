@@ -10,6 +10,11 @@ export interface Project {
   tags: string[]
   repo?: string
   live?: string
+  /**
+   * An easter-egg nudge, rendered mid-description by ProjectDescription so it
+   * rewards someone actually reading rather than skimming.
+   */
+  hint?: string
   screenshots?: Screenshot[]
 }
 
@@ -52,6 +57,7 @@ export const projects: Project[] = [
     name: 'AI-lbum',
     description:
       'Full-stack mobile app for AI-powered photo album generation using facial recognition. Built with Flutter (Dart), Node.js, Firebase, and face-api.js (TensorFlow.js).',
+    hint: 'Reading closely earns rewards: Chase and click one of the colored background blobs.',
     language: 'Dart',
     tags: ['Flutter', 'Firebase', 'AI', 'Node.js'],
     repo: 'https://github.com/IditMedizada/AIlbum',

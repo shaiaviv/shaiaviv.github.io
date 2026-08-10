@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../data/projects'
+import ProjectDescription from './ProjectDescription'
 import ScreenshotLightbox from './ScreenshotLightbox'
 import ArkanoidWidget from './ArkanoidWidget'
 import { dragBounce, dragWhile } from '../lib/dragProps'
@@ -119,9 +120,7 @@ export default function ProjectCard({ project, index }: Props) {
       <h3 className="font-display text-text-1 font-bold text-lg mb-2.5 tracking-tight">
         {project.name}
       </h3>
-      <p className="text-text-2 text-sm leading-relaxed flex-1 mb-5 font-medium">
-        {project.description}
-      </p>
+      <ProjectDescription project={project} className="text-text-2 text-sm leading-relaxed flex-1 mb-5 font-medium" />
 
       {isArkanoid ? (
         <div className="mb-5">

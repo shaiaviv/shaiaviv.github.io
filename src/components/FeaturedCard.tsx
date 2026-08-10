@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import type { Project } from '../data/projects'
+import ProjectDescription from './ProjectDescription'
 import ScreenshotLightbox from './ScreenshotLightbox'
 import { dragBounce, dragWhile } from '../lib/dragProps'
 import { useDragSuppressClick } from '../hooks/useDragSuppressClick'
@@ -126,9 +127,10 @@ export default function FeaturedCard({ project }: { project: Project }) {
               {project.name}
             </h3>
 
-            <p className="text-text-2 leading-relaxed mb-6 max-w-lg text-base font-medium">
-              {project.description}
-            </p>
+            <ProjectDescription
+              project={project}
+              className="text-text-2 leading-relaxed mb-6 max-w-lg text-base font-medium"
+            />
 
             <div className="flex flex-wrap gap-2">
               {project.tags.map((tag, i) => (
