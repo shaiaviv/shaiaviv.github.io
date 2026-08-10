@@ -170,12 +170,12 @@ export default function About() {
                   className="absolute inset-0 rounded-lg bg-surface-2 px-4 py-4 flex flex-col justify-center"
                   style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
                 >
-                  <p className="font-hand text-text-1 text-[1.32rem] leading-[1.15] -rotate-1">
-                    I sit quietly waiting for your command. I speak in logs and warnings.
-                    Here you can find my favorite desserts, Cookies. What am I?
+                  <p className="font-hand italic text-text-1 text-[1.32rem] leading-[1.15] -rotate-1">
+                    &ldquo;I sit quietly waiting for your command. I speak in logs and warnings.
+                    Here you can find my favorite desserts, Cookies. What am I?&rdquo;
                   </p>
                   <p className="font-hand text-accent text-[1.05rem] leading-tight mt-2 -rotate-1">
-                    The answer may lead to another treasure
+                    The answer may lead to another treasure...
                   </p>
                 </div>
               </motion.div>

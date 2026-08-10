@@ -98,13 +98,9 @@ export function installConsoleEgg(onCall: () => void) {
   console.log('%cSo you opened the console. That is exactly the sort of thing I do too.', body)
   console.log('%chiShai()%c  ← call that. There is an easter egg in it.', cta, body)
 
-  const hiShai = () => {
+  const w = window as unknown as Record<string, unknown>
+  w.hiShai = () => {
     onCall()
     return 'x-ray vision engaged 🩻 — look at the page'
   }
-
-  const w = window as unknown as Record<string, unknown>
-  w.hiShai = hiShai
-  // Anyone who guesses the more obvious spelling should still land the egg.
-  w.hireShai = hiShai
 }
