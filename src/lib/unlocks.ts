@@ -26,7 +26,7 @@ export const UNLOCKS: Record<UnlockId, Unlock> = {
     id: 'shapes',
     emoji: '✏️',
     title: 'Drawing unlocked!',
-    body: 'Click and hold on the page background and draw a circle or a heart — then let go and watch what happens to it.',
+    body: 'Click and hold on the page background and draw a CLOSED shape — a circle, heart, star, triangle, square or diamond — then let go and watch what happens to it.',
     completedBy: 'shape-shifter',
   },
   gravity: {

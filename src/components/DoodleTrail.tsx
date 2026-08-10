@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { unlockAchievement, ACHIEVEMENTS } from '../lib/achievements'
 import { isUnlocked } from '../lib/unlocks'
+import { recogniseShape, alignTargets, type Vertex, type ShapeKind } from '../lib/shapes'
 import { burstConfetti } from '../lib/confetti'
 
 // Same swarm the cursor drags around (see CursorGlow) — the trail has to read
@@ -88,8 +89,6 @@ function isBackdrop(target: EventTarget | null, x: number, y: number): boolean {
   return true
 }
 
-type Vertex = { x: number; y: number; d: number }
-
 type Dot = {
   s: number        // position along the path, in arc length
   v: number        // arc-length velocity, release phase only
@@ -114,8 +113,6 @@ type Dot = {
   ty: number
 }
 
-type ShapeKind = 'circle' | 'heart'
-
 type Trail = {
   path: Vertex[]
   dots: Dot[]
@@ -134,121 +131,6 @@ type Spark = { x: number; y: number; vx: number; vy: number; size: number; color
 type Ripple = { x: number; y: number; r: number; grow: number; color: string; life: number }
 
 const easeOutBack = (t: number) => 1 + 2.70158 * (t - 1) ** 3 + 1.70158 * (t - 1) ** 2
-
-type Box = { minX: number; maxX: number; minY: number; maxY: number; w: number; h: number; cx: number; cy: number }
-
-function boundsOf(path: Vertex[]): Box {
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
-  for (const p of path) {
-    if (p.x < minX) minX = p.x
-    if (p.x > maxX) maxX = p.x
-    if (p.y < minY) minY = p.y
-    if (p.y > maxY) maxY = p.y
-  }
-  return { minX, maxX, minY, maxY, w: maxX - minX, h: maxY - minY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 }
-}
-
-/**
- * Decides whether a stroke was meant to be a circle or a heart, from the
- * polyline the trail already records. Returns null for anything else, which
- * falls through to the normal domino run — so an unrecognised scribble still
- * does something satisfying rather than feeling like a failure.
- *
- * The tells, in order:
- *  - the stroke has to close on itself, and be big enough to be deliberate
- *  - a heart has a NOTCH: sample only the middle column of the drawing and its
- *    highest point sits well below the overall top (the two lobes), with the
- *    lowest point of the whole stroke centred (the tip)
- *  - a circle has near-constant distance from its centre — low radial spread
- * Heart is tested first because a heart is closed but not remotely circular,
- * while a good circle has no notch at all, so the two can't be confused.
- */
-function classifyShape(path: Vertex[], length: number): ShapeKind | null {
-  const debug = (reason: string, extra?: Record<string, number | boolean>) => {
-    if (import.meta.env.DEV) console.debug('[doodle] shape:', reason, extra ?? '')
-  }
-  if (path.length < 12 || length < 240) {
-    debug('too small', { points: path.length, length })
-    return null
-  }
-
-  const first = path[0]
-  const last = path[path.length - 1]
-  const gap = Math.hypot(last.x - first.x, last.y - first.y)
-  if (gap > length * 0.22) {
-    debug('not closed', { gap, allowed: length * 0.22 })
-    return null
-  }
-
-  const b = boundsOf(path)
-  if (Math.min(b.w, b.h) < MIN_SHAPE_SIZE) return null
-  if (b.w / b.h > 2.4 || b.h / b.w > 2.4) return null
-
-  let mean = 0
-  for (const p of path) mean += Math.hypot(p.x - b.cx, p.y - b.cy)
-  mean /= path.length
-  let variance = 0
-  for (const p of path) variance += (Math.hypot(p.x - b.cx, p.y - b.cy) - mean) ** 2
-  const spread = Math.sqrt(variance / path.length) / (mean || 1)
-
-  /*
-   * The notch is measured off the stroke's UPPER ENVELOPE, not off a narrow
-   * centre column. Bucket the points by x, keep the topmost y in each, and ask
-   * whether the middle bucket sits below its shoulders. Sampling a thin centre
-   * band instead reads a heart's notch as barely 0.07 of its height, because the
-   * curve is already almost as high as the lobes by the time it leaves the band.
-   * With the envelope the sign does the work: a heart dips (positive), while a
-   * circle's middle bucket IS its highest point (negative).
-   */
-  const BUCKETS = 9
-  const tops = new Array<number>(BUCKETS).fill(Infinity)
-  let lowest = path[0]
-  for (const p of path) {
-    const k = Math.min(BUCKETS - 1, Math.max(0, Math.floor(((p.x - b.minX) / b.w) * BUCKETS)))
-    if (p.y < tops[k]) tops[k] = p.y
-    if (p.y > lowest.y) lowest = p
-  }
-  const middle = tops[(BUCKETS - 1) / 2]
-  const shoulders = Math.min(tops[2], tops[BUCKETS - 3])
-  const notch = Number.isFinite(middle) && Number.isFinite(shoulders) ? (middle - shoulders) / b.h : 0
-  const tipCentred = Math.abs(lowest.x - b.cx) < b.w * 0.28
-
-  debug('measured', { spread, notch, tipCentred, w: b.w, h: b.h })
-  if (notch > 0.06 && tipCentred && spread > 0.12) return 'heart'
-  if (spread < 0.22) return 'circle'
-  return null
-}
-
-/** Evenly spaced points around a perfect circle inscribed in the drawn bounds. */
-function circleTargets(n: number, b: Box, startAngle: number, clockwise: boolean) {
-  const r = (b.w + b.h) / 4
-  const dir = clockwise ? 1 : -1
-  return Array.from({ length: n }, (_, i) => {
-    const a = startAngle + dir * ((Math.PI * 2 * i) / n)
-    return { x: b.cx + Math.cos(a) * r, y: b.cy + Math.sin(a) * r }
-  })
-}
-
-/** The classic heart curve, scaled to sit inside the drawn bounds. */
-function heartTargets(n: number, b: Box) {
-  const raw = Array.from({ length: n }, (_, i) => {
-    const t = (Math.PI * 2 * i) / n
-    return {
-      x: 16 * Math.sin(t) ** 3,
-      // negated because the curve is defined with y pointing up, and this
-      // canvas — like every canvas — has y pointing down
-      y: -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)),
-    }
-  })
-  const xs = raw.map((p) => p.x)
-  const ys = raw.map((p) => p.y)
-  const sw = Math.max(...xs) - Math.min(...xs)
-  const sh = Math.max(...ys) - Math.min(...ys)
-  const scale = Math.min(b.w / sw, b.h / sh)
-  const mx = (Math.min(...xs) + Math.max(...xs)) / 2
-  const my = (Math.min(...ys) + Math.max(...ys)) / 2
-  return raw.map((p) => ({ x: b.cx + (p.x - mx) * scale, y: b.cy + (p.y - my) * scale }))
-}
 
 /**
  * Click-and-drag anywhere on the bare page background to paint a beaded trail
@@ -402,36 +284,30 @@ export default function DoodleTrail() {
         t.path.push({ x: t.endX, y: t.endY, d: t.length })
       }
 
-      // Once drawing is unlocked, a stroke that reads as a circle or a heart
-      // abandons the domino run and snaps into a perfect version of itself
-      // instead. Unrecognised strokes fall through and topple as usual, so this
-      // never feels like a failed gesture.
-      const kind = isUnlocked('shapes') ? classifyShape(t.path, t.length) : null
-      if (kind) {
-        const b = boundsOf(t.path)
+      // Once drawing is unlocked, a CLOSED stroke that reads as a known shape
+      // abandons the domino run and snaps into a perfect version of itself.
+      // Open strokes never qualify — that is the point of the egg — and a closed
+      // one the recogniser doesn't know falls through and topples as usual, so
+      // this never feels like a failed gesture.
+      const shape = isUnlocked('shapes') ? recogniseShape(t.path, t.length) : null
+      if (shape) {
         const n = t.dots.length
-        const head = t.dots[0]
-        const headAt = pointAt(t, head)
-        const startAngle = Math.atan2(headAt.y - b.cy, headAt.x - b.cx)
-        // Follow the direction the stroke was drawn in (shoelace sign) so beads
-        // slide to the nearest slot instead of crossing the shape to reach it.
-        let area = 0
-        for (let i = 0; i < t.path.length - 1; i++) {
-          area += t.path[i].x * t.path[i + 1].y - t.path[i + 1].x * t.path[i].y
-        }
-        const targets = kind === 'heart' ? heartTargets(n, b) : circleTargets(n, b, startAngle, area > 0)
+        const from = t.dots.map((dot) => {
+          const at = pointAt(t, dot)
+          return { x: at.x + dot.offX, y: at.y + dot.offY }
+        })
+        const targets = alignTargets(shape.targets(n), from)
 
         t.dots.forEach((dot, i) => {
-          const from = pointAt(t, dot)
-          dot.mx = from.x + dot.offX
-          dot.my = from.y + dot.offY
+          dot.mx = from[i].x
+          dot.my = from[i].y
           dot.mvx = 0
           dot.mvy = 0
           dot.tx = targets[i].x
           dot.ty = targets[i].y
         })
         t.released = true
-        t.morph = { kind, frame: 0, cx: b.cx, cy: b.cy }
+        t.morph = { kind: shape.kind, frame: 0, cx: shape.centre.x, cy: shape.centre.y }
 
         unlockAchievement(ACHIEVEMENTS.doodleDominos)
         unlockAchievement(ACHIEVEMENTS.shapeShifter)

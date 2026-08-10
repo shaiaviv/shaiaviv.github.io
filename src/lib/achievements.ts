@@ -76,7 +76,7 @@ export const ACHIEVEMENTS: Record<string, Achievement> = {
     id: 'shape-shifter',
     emoji: '💫',
     title: 'Shape shifter!',
-    message: 'Your scribble snapped into a perfect shape. Psst — open a project and look at EVERY screenshot to unlock one more egg.',
+    message: 'Your scribble snapped into a perfect shape. Circles, hearts, stars, triangles, squares and diamonds all work. Psst — open a project and look at EVERY screenshot to unlock one more egg.',
   },
   gravity: {
     id: 'gravity',
