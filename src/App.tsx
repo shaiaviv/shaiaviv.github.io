@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
 import Background from './components/Background'
 import CursorGlow from './components/CursorGlow'
 import DoodleTrail from './components/DoodleTrail'
@@ -15,24 +15,80 @@ import { burstConfetti } from './lib/confetti'
 
 const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']
 
+const SWEEP_SECONDS = 2.5
+
+/**
+ * One white circle in `mix-blend-mode: difference`, grown from nothing to
+ * beyond the viewport's corners. White-difference is arithmetically the exact
+ * photographic negative (255 − channel) of everything painted behind it.
+ *
+ * Deliberately NOT `filter: invert(1)` on a wrapper: a filter establishes a
+ * containing block for every position:fixed descendant, so the navbar,
+ * background, cursor swarm and toasts would all stop being viewport-fixed and
+ * scroll with the page mid-effect.
+ *
+ * The blend reaches the page because nothing above it isolates: App's wrapper
+ * is `relative` with no z-index, so it creates no stacking context. Adding
+ * `isolation: isolate` anywhere above this would silently reduce the whole
+ * effect to a plain white disc.
+ */
+function NegativeSweep({ reduceMotion, onDone }: { reduceMotion: boolean; onDone: () => void }) {
+  return (
+    <motion.div
+      className="fixed left-1/2 top-1/2 z-[9999] pointer-events-none rounded-full"
+      style={{
+        width: '150vmax',   // ≥ any viewport's diagonal (√2 × vmax), so scale 1 always covers
+        height: '150vmax',
+        x: '-50%',
+        y: '-50%',
+        backgroundColor: '#ffffff',
+        mixBlendMode: 'difference',
+      }}
+      initial={reduceMotion ? { opacity: 0, scale: 1 } : { scale: 0 }}
+      animate={reduceMotion ? { opacity: 1, scale: 1 } : { scale: 1 }}
+      // A near-linear curve on purpose: the site's usual [0.22, 1, 0.36, 1] is
+      // 85% done in the first quarter of its duration, which turns the sweep
+      // into a snap. A wipe wants a wavefront moving at a roughly steady speed
+      // — and since a circle's area grows with r², constant radius growth
+      // already feels like it eases out.
+      transition={{ duration: reduceMotion ? 0.45 : SWEEP_SECONDS, ease: [0.4, 0.1, 0.5, 1] }}
+      onAnimationComplete={onDone}
+    />
+  )
+}
+
 export default function App() {
-  const [partyMode, setPartyMode] = useState(false)
+  /**
+   * Konami toggles the page into its photographic negative and back, and the
+   * state is a count of sweeps rather than a boolean because the way back is
+   * the same animation, not a rewind: difference-with-white is an involution
+   * (255 − (255 − x) = x), so a SECOND circle growing over the first cancels it
+   * exactly, restoring true colour inside its radius. Once that second sweep
+   * lands, both layers drop in one frame — the page is already back to normal,
+   * so removing them changes nothing on screen.
+   */
+  const [sweeps, setSweeps] = useState(0)
+  // Guards against re-triggering mid-sweep, which would leave one circle
+  // growing inside another and make the two passes fight over the same pixels.
+  const sweeping = useRef(false)
 
   useEffect(() => {
     let progress: string[] = []
     const onKey = (e: KeyboardEvent) => {
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key
       progress = [...progress, key].slice(-KONAMI.length)
-      if (progress.join(',') === KONAMI.join(',')) {
-        setPartyMode(true)
-        burstConfetti(window.innerWidth / 2, window.innerHeight / 2, 140)
-        unlockAchievement(ACHIEVEMENTS.konami)
-        setTimeout(() => setPartyMode(false), 2400)
-      }
+      if (progress.join(',') !== KONAMI.join(',')) return
+      if (sweeping.current) return
+      sweeping.current = true
+      setSweeps((n) => n + 1)
+      burstConfetti(window.innerWidth / 2, window.innerHeight / 2, 140)
+      unlockAchievement(ACHIEVEMENTS.konami)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   // data-doodle-root marks where DoodleTrail's "is this the bare backdrop?"
   // walk stops — this wrapper paints the page background, so it must not
@@ -43,19 +99,31 @@ export default function App() {
       <CursorGlow />
       <DoodleTrail />
       <AchievementToasts />
-      <AnimatePresence>
-        {partyMode && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9996] pointer-events-none"
-            style={{
-              background: 'linear-gradient(135deg, rgba(108,92,231,0.12), rgba(255,107,87,0.12), rgba(255,194,60,0.12))',
-            }}
-          />
-        )}
-      </AnimatePresence>
+      {/*
+        No AnimatePresence: the layers must vanish in a single frame when the
+        pair cancels out. An exit animation would retract the first circle and
+        visibly re-invert the page on the way out.
+
+        Both sit below the confetti's own canvas (z-10000), so the confetti
+        stays in true colour against the negative page.
+      */}
+      {/* Stays mounted through the second pass — it is the inversion the second
+          circle cancels. Unmounting it here would snap the page back to true
+          colour and leave the return sweep re-inverting it instead. */}
+      {sweeps >= 1 && (
+        <NegativeSweep
+          key="invert"
+          reduceMotion={reduceMotion}
+          onDone={() => { sweeping.current = false }}
+        />
+      )}
+      {sweeps === 2 && (
+        <NegativeSweep
+          key="restore"
+          reduceMotion={reduceMotion}
+          onDone={() => { setSweeps(0); sweeping.current = false }}
+        />
+      )}
       <div className="relative z-10">
         <Navbar />
         <main>
