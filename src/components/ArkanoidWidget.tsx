@@ -38,8 +38,11 @@ export default function ArkanoidWidget() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
     canvas.width = W * dpr
     canvas.height = H * dpr
-    canvas.style.width = `${W}px`
-    canvas.style.height = `${H}px`
+    // Responsive display size — the internal WxH simulation stays fixed so
+    // physics never changes, but the canvas scales to fit narrow screens
+    // instead of overflowing (which was clipping the right edge on mobile).
+    canvas.style.width = '100%'
+    canvas.style.height = 'auto'
     ctx.scale(dpr, dpr)
 
     const brickW = W / COLS

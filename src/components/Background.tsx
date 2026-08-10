@@ -10,6 +10,10 @@ const BALL_COLORS = [
 
 export default function Background() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  // Scroll/mouse-linked transforms on position:fixed blobs recompute every
+  // scroll frame — cheap on desktop, but combined with a fixed layer it
+  // reads as stutter on mobile GPUs, so mobile blobs render statically.
+  const isMobile = window.matchMedia('(max-width: 768px)').matches
 
   const { scrollY } = useScroll()
   const blob1Y = useTransform(scrollY, [0, 2000], [0, -160])
@@ -71,7 +75,7 @@ export default function Background() {
       ctx.filter = 'none'
     }
 
-    if (reduceMotion) {
+    if (reduceMotion || isMobile) {
       drawStatic()
       return () => {
         window.removeEventListener('resize', resize)
@@ -156,8 +160,7 @@ export default function Background() {
           borderRadius: '42% 58% 65% 35% / 45% 40% 60% 55%',
           background: 'radial-gradient(circle, rgba(108,92,231,0.16) 0%, rgba(108,92,231,0.04) 45%, transparent 70%)',
           filter: 'blur(50px)',
-          x: blob1X,
-          y: blob1Y,
+          ...(isMobile ? {} : { x: blob1X, y: blob1Y }),
         }}
       />
 
@@ -170,8 +173,7 @@ export default function Background() {
           borderRadius: '58% 42% 38% 62% / 55% 60% 40% 45%',
           background: 'radial-gradient(circle, rgba(255,107,87,0.14) 0%, rgba(255,107,87,0.03) 45%, transparent 70%)',
           filter: 'blur(50px)',
-          x: blob2X,
-          y: blob2Y,
+          ...(isMobile ? {} : { x: blob2X, y: blob2Y }),
         }}
       />
 
@@ -184,8 +186,7 @@ export default function Background() {
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(255,194,60,0.14) 0%, transparent 70%)',
           filter: 'blur(40px)',
-          x: blob3X,
-          y: blob3Y,
+          ...(isMobile ? {} : { x: blob3X, y: blob3Y }),
         }}
       />
 
