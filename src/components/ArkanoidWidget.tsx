@@ -154,7 +154,16 @@ export default function ArkanoidWidget() {
         ) {
           ball.vy *= -1
           const hit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2)
-          ball.vx = hit * 2.1
+          // A near-center hit gives a near-zero vx — without a floor the ball
+          // returns to nearly the same x every time and creeps sideways so
+          // slowly it looks stuck bouncing perfectly vertically. Floor the
+          // final speed (not just the exact-zero case) so it always drifts
+          // at a visible pace.
+          const MIN_VX = 0.6
+          const rawVx = hit * 2.1
+          ball.vx = Math.abs(rawVx) < MIN_VX
+            ? (rawVx === 0 ? (Math.random() > 0.5 ? 1 : -1) : Math.sign(rawVx)) * MIN_VX
+            : rawVx
         }
 
         // brick collision
