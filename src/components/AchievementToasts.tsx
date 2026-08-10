@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ACHIEVEMENT_EVENT, TOTAL_ACHIEVEMENTS, type Achievement, type AchievementToast } from '../lib/achievements'
+import {
+  ACHIEVEMENT_EVENT,
+  TOTAL_ACHIEVEMENTS,
+  COMPLETION_CODE,
+  completionMailto,
+  type Achievement,
+  type AchievementToast,
+} from '../lib/achievements'
+import { burstConfetti } from '../lib/confetti'
 
 interface Toast extends AchievementToast {
   key: number
@@ -12,6 +20,7 @@ export default function AchievementToasts() {
   const [hovering, setHovering] = useState(false)
   const [pinned, setPinned] = useState(false)
   const [justBumped, setJustBumped] = useState(false)
+  const [showFinale, setShowFinale] = useState(false)
 
   useEffect(() => {
     let counter = 0
@@ -26,6 +35,15 @@ export default function AchievementToasts() {
       setFound((prev) => (prev.some((f) => f.id === detail.id) ? prev : [detail, ...prev]))
       setJustBumped(true)
       setTimeout(() => setJustBumped(false), 600)
+
+      // Cleared the board. Held back a beat so the last egg's own toast lands
+      // first instead of being buried by the finale.
+      if (detail.count >= detail.total) {
+        setTimeout(() => {
+          setShowFinale(true)
+          burstConfetti(window.innerWidth / 2, window.innerHeight * 0.4, 200)
+        }, 900)
+      }
     }
     window.addEventListener(ACHIEVEMENT_EVENT, handle)
     return () => window.removeEventListener(ACHIEVEMENT_EVENT, handle)
@@ -36,6 +54,59 @@ export default function AchievementToasts() {
   const expanded = hovering || pinned
 
   return (
+    <>
+      {/*
+        The payoff for all ten. Anyone who gets here has spent real time on the
+        site, so the reward is a one-click warm intro: the mailto is prefilled
+        with a code only a completionist could have seen, and left trailing
+        mid-sentence so they finish it with the actual role.
+      */}
+      <AnimatePresence>
+        {showFinale && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9998] flex items-center justify-center p-5 bg-text-1/40 backdrop-blur-sm"
+            onClick={() => setShowFinale(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.85, y: 30, rotate: -2 }}
+              animate={{ scale: 1, y: 0, rotate: -1 }}
+              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="sticker rounded-3xl bg-surface px-7 py-7 max-w-[30rem] text-center"
+            >
+              <div className="text-5xl mb-3">🏆</div>
+              <h3 className="font-display font-bold text-2xl text-text-1 leading-tight">
+                All {TOTAL_ACHIEVEMENTS} easter eggs found
+              </h3>
+              <p className="font-mono text-[0.72rem] text-text-2 mt-3 leading-relaxed">
+                Nobody gets here by accident. Your secret code is
+                {' '}
+                <span className="font-bold text-text-1 bg-green/60 px-1.5 py-0.5 rounded">{COMPLETION_CODE}</span>
+                {' '}
+                — send it over and tell me what you are hiring for. The email is already written.
+              </p>
+              <a
+                href={completionMailto()}
+                className="sticker-btn inline-flex items-center gap-2 mt-5 rounded-full bg-accent px-5 py-2.5 font-mono text-xs font-bold text-white"
+              >
+                ✉️ Claim it
+              </a>
+              <button
+                type="button"
+                onClick={() => setShowFinale(false)}
+                className="block mx-auto mt-4 font-mono text-[0.66rem] text-text-2 underline decoration-dotted underline-offset-4"
+              >
+                maybe later
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     <div className="fixed bottom-5 right-5 z-[9997] flex flex-col items-end gap-3 pointer-events-none">
       <AnimatePresence>
         {toasts.map((t) => {
@@ -120,5 +191,6 @@ export default function AchievementToasts() {
         </motion.button>
       </div>
     </div>
+    </>
   )
 }

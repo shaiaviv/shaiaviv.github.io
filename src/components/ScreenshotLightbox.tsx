@@ -1,7 +1,8 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { Screenshot } from '../data/projects'
+import { unlockFeature } from '../lib/unlocks'
 
 interface Props {
   screenshots: Screenshot[]
@@ -14,13 +15,34 @@ interface Props {
 
 export default function ScreenshotLightbox({ screenshots, projectName, isOpen, index, onIndexChange, onClose }: Props) {
   const total = screenshots.length
+
+  /*
+   * Which shots this visit actually saw. Both easter-egg unlocks are earned in
+   * here — opening the gallery at all unlocks drawing, seeing every last shot
+   * unlocks gravity — but they only fire on CLOSE. Announcing them live would
+   * drop a banner over the screenshots the visitor came to look at, which would
+   * sabotage the exact behaviour the rewards exist to encourage.
+   */
+  const viewed = useRef(new Set<number>())
+
+  useEffect(() => {
+    if (isOpen) viewed.current.add(index)
+  }, [isOpen, index])
+
+  const handleClose = useCallback(() => {
+    if (viewed.current.size > 0) unlockFeature('shapes')
+    if (total > 0 && viewed.current.size >= total) unlockFeature('gravity')
+    viewed.current = new Set()
+    onClose()
+  }, [total, onClose])
+
   const goPrev = useCallback(() => onIndexChange((index - 1 + total) % total), [index, total, onIndexChange])
   const goNext = useCallback(() => onIndexChange((index + 1) % total), [index, total, onIndexChange])
 
   useEffect(() => {
     if (!isOpen) return
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') handleClose()
       if (e.key === 'ArrowLeft') goPrev()
       if (e.key === 'ArrowRight') goNext()
     }
@@ -30,7 +52,7 @@ export default function ScreenshotLightbox({ screenshots, projectName, isOpen, i
       window.removeEventListener('keydown', handleKey)
       document.body.style.overflow = ''
     }
-  }, [isOpen, goPrev, goNext, onClose])
+  }, [isOpen, goPrev, goNext, handleClose])
 
   const current = screenshots[index]
 
@@ -55,11 +77,11 @@ export default function ScreenshotLightbox({ screenshots, projectName, isOpen, i
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
         className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-10 bg-text-1/90 backdrop-blur-md"
-        onClick={onClose}
+        onClick={handleClose}
       >
         {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           aria-label="Close"
           className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center bg-white/10 border-2 border-white/20 text-white/80 hover:text-white hover:border-accent transition-colors duration-200"
         >

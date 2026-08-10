@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { unlockAchievement, ACHIEVEMENTS } from '../lib/achievements'
+import { isUnlocked } from '../lib/unlocks'
 import { burstConfetti } from '../lib/confetti'
 
 // Same swarm the cursor drags around (see CursorGlow) — the trail has to read
@@ -22,6 +23,12 @@ const GAP_DECAY = 0.82   // how fast a dot's rest gap collapses once its turn co
 const WAVE_FRAMES = 60   // total budget for the cascade to reach the tail, any length
 const OFF_DECAY = 0.9    // hand-drawn jitter unwinding back onto the path
 const LIFE_DRAIN = 0.055
+
+// Shape-snap mode (unlocked by opening a project's screenshots)
+const MORPH_STIFF = 0.16
+const MORPH_DAMP = 0.8
+const MORPH_HOLD_FRAMES = 62  // fly into formation, then hold it long enough to read
+const MIN_SHAPE_SIZE = 70     // px — smaller than this is a scribble, not a drawing
 
 /**
  * Elements that must never start a doodle: anything interactive, anything the
@@ -67,7 +74,18 @@ type Dot = {
   color: string
   landed: boolean
   life: number
+  // Shape-snap only: free 2D position and its target on the ideal shape. The
+  // domino run is 1D (a position along the drawn path), but snapping into a
+  // circle or heart means leaving the path, so those beads need real x/y.
+  mx: number
+  my: number
+  mvx: number
+  mvy: number
+  tx: number
+  ty: number
 }
+
+type ShapeKind = 'circle' | 'heart'
 
 type Trail = {
   path: Vertex[]
@@ -80,12 +98,128 @@ type Trail = {
   endX: number
   endY: number
   finale: boolean
+  morph: { kind: ShapeKind; frame: number; cx: number; cy: number } | null
 }
 
 type Spark = { x: number; y: number; vx: number; vy: number; size: number; color: string; life: number }
 type Ripple = { x: number; y: number; r: number; grow: number; color: string; life: number }
 
 const easeOutBack = (t: number) => 1 + 2.70158 * (t - 1) ** 3 + 1.70158 * (t - 1) ** 2
+
+type Box = { minX: number; maxX: number; minY: number; maxY: number; w: number; h: number; cx: number; cy: number }
+
+function boundsOf(path: Vertex[]): Box {
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+  for (const p of path) {
+    if (p.x < minX) minX = p.x
+    if (p.x > maxX) maxX = p.x
+    if (p.y < minY) minY = p.y
+    if (p.y > maxY) maxY = p.y
+  }
+  return { minX, maxX, minY, maxY, w: maxX - minX, h: maxY - minY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 }
+}
+
+/**
+ * Decides whether a stroke was meant to be a circle or a heart, from the
+ * polyline the trail already records. Returns null for anything else, which
+ * falls through to the normal domino run — so an unrecognised scribble still
+ * does something satisfying rather than feeling like a failure.
+ *
+ * The tells, in order:
+ *  - the stroke has to close on itself, and be big enough to be deliberate
+ *  - a heart has a NOTCH: sample only the middle column of the drawing and its
+ *    highest point sits well below the overall top (the two lobes), with the
+ *    lowest point of the whole stroke centred (the tip)
+ *  - a circle has near-constant distance from its centre — low radial spread
+ * Heart is tested first because a heart is closed but not remotely circular,
+ * while a good circle has no notch at all, so the two can't be confused.
+ */
+function classifyShape(path: Vertex[], length: number): ShapeKind | null {
+  const debug = (reason: string, extra?: Record<string, number | boolean>) => {
+    if (import.meta.env.DEV) console.debug('[doodle] shape:', reason, extra ?? '')
+  }
+  if (path.length < 12 || length < 240) {
+    debug('too small', { points: path.length, length })
+    return null
+  }
+
+  const first = path[0]
+  const last = path[path.length - 1]
+  const gap = Math.hypot(last.x - first.x, last.y - first.y)
+  if (gap > length * 0.22) {
+    debug('not closed', { gap, allowed: length * 0.22 })
+    return null
+  }
+
+  const b = boundsOf(path)
+  if (Math.min(b.w, b.h) < MIN_SHAPE_SIZE) return null
+  if (b.w / b.h > 2.4 || b.h / b.w > 2.4) return null
+
+  let mean = 0
+  for (const p of path) mean += Math.hypot(p.x - b.cx, p.y - b.cy)
+  mean /= path.length
+  let variance = 0
+  for (const p of path) variance += (Math.hypot(p.x - b.cx, p.y - b.cy) - mean) ** 2
+  const spread = Math.sqrt(variance / path.length) / (mean || 1)
+
+  /*
+   * The notch is measured off the stroke's UPPER ENVELOPE, not off a narrow
+   * centre column. Bucket the points by x, keep the topmost y in each, and ask
+   * whether the middle bucket sits below its shoulders. Sampling a thin centre
+   * band instead reads a heart's notch as barely 0.07 of its height, because the
+   * curve is already almost as high as the lobes by the time it leaves the band.
+   * With the envelope the sign does the work: a heart dips (positive), while a
+   * circle's middle bucket IS its highest point (negative).
+   */
+  const BUCKETS = 9
+  const tops = new Array<number>(BUCKETS).fill(Infinity)
+  let lowest = path[0]
+  for (const p of path) {
+    const k = Math.min(BUCKETS - 1, Math.max(0, Math.floor(((p.x - b.minX) / b.w) * BUCKETS)))
+    if (p.y < tops[k]) tops[k] = p.y
+    if (p.y > lowest.y) lowest = p
+  }
+  const middle = tops[(BUCKETS - 1) / 2]
+  const shoulders = Math.min(tops[2], tops[BUCKETS - 3])
+  const notch = Number.isFinite(middle) && Number.isFinite(shoulders) ? (middle - shoulders) / b.h : 0
+  const tipCentred = Math.abs(lowest.x - b.cx) < b.w * 0.28
+
+  debug('measured', { spread, notch, tipCentred, w: b.w, h: b.h })
+  if (notch > 0.06 && tipCentred && spread > 0.12) return 'heart'
+  if (spread < 0.22) return 'circle'
+  return null
+}
+
+/** Evenly spaced points around a perfect circle inscribed in the drawn bounds. */
+function circleTargets(n: number, b: Box, startAngle: number, clockwise: boolean) {
+  const r = (b.w + b.h) / 4
+  const dir = clockwise ? 1 : -1
+  return Array.from({ length: n }, (_, i) => {
+    const a = startAngle + dir * ((Math.PI * 2 * i) / n)
+    return { x: b.cx + Math.cos(a) * r, y: b.cy + Math.sin(a) * r }
+  })
+}
+
+/** The classic heart curve, scaled to sit inside the drawn bounds. */
+function heartTargets(n: number, b: Box) {
+  const raw = Array.from({ length: n }, (_, i) => {
+    const t = (Math.PI * 2 * i) / n
+    return {
+      x: 16 * Math.sin(t) ** 3,
+      // negated because the curve is defined with y pointing up, and this
+      // canvas — like every canvas — has y pointing down
+      y: -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)),
+    }
+  })
+  const xs = raw.map((p) => p.x)
+  const ys = raw.map((p) => p.y)
+  const sw = Math.max(...xs) - Math.min(...xs)
+  const sh = Math.max(...ys) - Math.min(...ys)
+  const scale = Math.min(b.w / sw, b.h / sh)
+  const mx = (Math.min(...xs) + Math.max(...xs)) / 2
+  const my = (Math.min(...ys) + Math.max(...ys)) / 2
+  return raw.map((p) => ({ x: b.cx + (p.x - mx) * scale, y: b.cy + (p.y - my) * scale }))
+}
 
 /**
  * Click-and-drag anywhere on the bare page background to paint a beaded trail
@@ -135,6 +269,12 @@ export default function DoodleTrail() {
         color: DOT_COLORS[i % DOT_COLORS.length],
         landed: false,
         life: 1,
+        mx: 0,
+        my: 0,
+        mvx: 0,
+        mvy: 0,
+        tx: 0,
+        ty: 0,
       })
     }
 
@@ -233,6 +373,43 @@ export default function DoodleTrail() {
         t.path.push({ x: t.endX, y: t.endY, d: t.length })
       }
 
+      // Once drawing is unlocked, a stroke that reads as a circle or a heart
+      // abandons the domino run and snaps into a perfect version of itself
+      // instead. Unrecognised strokes fall through and topple as usual, so this
+      // never feels like a failed gesture.
+      const kind = isUnlocked('shapes') ? classifyShape(t.path, t.length) : null
+      if (kind) {
+        const b = boundsOf(t.path)
+        const n = t.dots.length
+        const head = t.dots[0]
+        const headAt = pointAt(t, head)
+        const startAngle = Math.atan2(headAt.y - b.cy, headAt.x - b.cx)
+        // Follow the direction the stroke was drawn in (shoelace sign) so beads
+        // slide to the nearest slot instead of crossing the shape to reach it.
+        let area = 0
+        for (let i = 0; i < t.path.length - 1; i++) {
+          area += t.path[i].x * t.path[i + 1].y - t.path[i + 1].x * t.path[i].y
+        }
+        const targets = kind === 'heart' ? heartTargets(n, b) : circleTargets(n, b, startAngle, area > 0)
+
+        t.dots.forEach((dot, i) => {
+          const from = pointAt(t, dot)
+          dot.mx = from.x + dot.offX
+          dot.my = from.y + dot.offY
+          dot.mvx = 0
+          dot.mvy = 0
+          dot.tx = targets[i].x
+          dot.ty = targets[i].y
+        })
+        t.released = true
+        t.morph = { kind, frame: 0, cx: b.cx, cy: b.cy }
+
+        unlockAchievement(ACHIEVEMENTS.doodleDominos)
+        unlockAchievement(ACHIEVEMENTS.shapeShifter)
+        swallowClick()
+        return
+      }
+
       // Stagger is budgeted, not fixed: a 200-bead scribble collapses in the
       // same wall-clock time as a 10-bead flick, just with a tighter ripple.
       const stagger = Math.max(0.8, Math.min(3, WAVE_FRAMES / t.dots.length))
@@ -265,6 +442,7 @@ export default function DoodleTrail() {
         endX: e.clientX,
         endY: e.clientY,
         finale: false,
+        morph: null,
       }
       addDot(drawing)
       trails.push(drawing)
@@ -289,6 +467,42 @@ export default function DoodleTrail() {
 
       for (const t of trails) {
         const n = t.dots.length
+
+        // ── shape snap: beads leave the path entirely and fly into formation,
+        // hold the shape long enough to register, then all burst at once.
+        if (t.morph) {
+          t.morph.frame++
+          const burst = t.morph.frame >= MORPH_HOLD_FRAMES
+          for (const dot of t.dots) {
+            if (dot.landed) { dot.life -= LIFE_DRAIN; continue }
+            dot.mvx = (dot.mvx + (dot.tx - dot.mx) * MORPH_STIFF) * MORPH_DAMP
+            dot.mvy = (dot.mvy + (dot.ty - dot.my) * MORPH_STIFF) * MORPH_DAMP
+            dot.mx += dot.mvx
+            dot.my += dot.mvy
+            if (burst) {
+              dot.landed = true
+              impact(dot.mx, dot.my, dot)
+            }
+          }
+          if (burst && !t.finale) {
+            t.finale = true
+            ripples.push({ x: t.morph.cx, y: t.morph.cy, r: 8, grow: 5, color: '#171310', life: 1 })
+            burstConfetti(t.morph.cx, t.morph.cy, 30)
+          }
+
+          for (const dot of t.dots) {
+            if (dot.life <= 0) continue
+            const scale = dot.landed ? 1 + (1 - dot.life) * 0.7 : 1
+            ctx.globalAlpha = dot.landed ? 0.92 * dot.life : 0.92
+            ctx.beginPath()
+            ctx.arc(dot.mx, dot.my, Math.max((dot.size / 2) * scale, 0.1), 0, Math.PI * 2)
+            ctx.fillStyle = dot.color
+            ctx.fill()
+          }
+          ctx.globalAlpha = 1
+          continue
+        }
+
         if (t.released) t.frame++
 
         for (let i = n - 1; i >= 0; i--) {

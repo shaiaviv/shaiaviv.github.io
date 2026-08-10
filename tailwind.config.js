@@ -22,6 +22,7 @@ export default {
         sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
         display: ['Space Grotesk', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
+        hand: ['Caveat', 'ui-rounded', 'cursive'],
       },
       boxShadow: {
         pop: '5px 5px 0 0 #171310',

@@ -2,6 +2,8 @@ import { useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import RevealText from './RevealText'
 import { dragBounce, dragWhile, onDragUnlock } from '../lib/dragProps'
+import { useDragSuppressClick } from '../hooks/useDragSuppressClick'
+import { unlockAchievement, ACHIEVEMENTS } from '../lib/achievements'
 // Imported rather than referenced from public/: Vite rewrites this URL with the
 // deploy target's base, which is '/' on Vercel but '/portfolio/' on GH Pages, so
 // a hardcoded root-relative path would 404 on one of the two.
@@ -28,6 +30,10 @@ const highlights = [
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null)
   const [photoHovered, setPhotoHovered] = useState(false)
+  const [flipped, setFlipped] = useState(false)
+  // A drag across the photo must not also flip it — the browser fires a click
+  // on mouseup regardless of how far the pointer travelled.
+  const flipSuppress = useDragSuppressClick()
 
   return (
     <section id="about" ref={sectionRef} className="py-32 px-6">
@@ -112,31 +118,66 @@ export default function About() {
               onHoverStart={() => setPhotoHovered(true)}
               onHoverEnd={() => setPhotoHovered(false)}
             >
+              {/*
+                Click the photo and it turns over to a handwritten riddle whose
+                answer — "the console" — is where the next egg is waiting.
+                rotateY rides on the same element as the hover tilt and the drag,
+                which Framer composes into one transform; preserve-3d plus
+                backface-visibility on each face is what makes it read as a
+                physical object rather than a crossfade.
+              */}
               <motion.div
                 className="relative bg-surface sticker p-3 pb-6 rounded-lg cursor-grab active:cursor-grabbing select-none"
-                animate={photoHovered ? { rotate: 0, scale: 1.03, y: -4 } : { rotate: -4, scale: 1, y: 0 }}
-                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                animate={
+                  photoHovered && !flipped
+                    ? { rotate: 0, scale: 1.03, y: -4, rotateY: 0 }
+                    : { rotate: -4, scale: 1, y: 0, rotateY: flipped ? 180 : 0 }
+                }
+                transition={{ duration: flipped ? 0.7 : 0.3, ease: [0.22, 1, 0.36, 1] }}
                 drag
                 dragSnapToOrigin
                 dragElastic={0.15}
                 dragTransition={dragBounce}
                 whileDrag={dragWhile}
-                onDragStart={onDragUnlock}
-                style={{ touchAction: 'none' }}
+                onDragStart={() => { onDragUnlock(); flipSuppress.onDragStart() }}
+                onDrag={flipSuppress.onDrag}
+                onClick={(e) => {
+                  flipSuppress.onClick(e)
+                  if (e.defaultPrevented) return
+                  setFlipped((f) => !f)
+                  unlockAchievement(ACHIEVEMENTS.polaroidFlip)
+                }}
+                style={{ touchAction: 'none', transformStyle: 'preserve-3d' }}
               >
-                {/* Tape corner */}
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-green/60 border border-text-1/20 rotate-[-3deg]" />
-                <img
-                  src={portrait}
-                  alt="Shai Aviv"
-                  width={891}
-                  height={896}
-                  draggable={false}
-                  className="keep-color relative w-48 h-48 md:w-56 md:h-56 object-cover pointer-events-none"
-                />
-                <p className="text-center font-display text-sm font-bold text-text-1 mt-3">
-                  <RevealText>build. ship. repeat.</RevealText>
-                </p>
+                <div style={{ backfaceVisibility: 'hidden' }}>
+                  {/* Tape corner */}
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-green/60 border border-text-1/20 rotate-[-3deg]" />
+                  <img
+                    src={portrait}
+                    alt="Shai Aviv"
+                    width={891}
+                    height={896}
+                    draggable={false}
+                    className="keep-color relative w-48 h-48 md:w-56 md:h-56 object-cover pointer-events-none"
+                  />
+                  <p className="text-center font-display text-sm font-bold text-text-1 mt-3">
+                    <RevealText>build. ship. repeat.</RevealText>
+                  </p>
+                </div>
+
+                {/* Back of the photo */}
+                <div
+                  className="absolute inset-0 rounded-lg bg-surface-2 px-4 py-4 flex flex-col justify-center"
+                  style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+                >
+                  <p className="font-hand text-text-1 text-[1.32rem] leading-[1.15] -rotate-1">
+                    I sit quietly waiting for your command. I speak in logs and warnings.
+                    Here you can find my favorite desserts, Cookies. What am I?
+                  </p>
+                  <p className="font-hand text-accent text-[1.05rem] leading-tight mt-2 -rotate-1">
+                    The answer may lead to another treasure
+                  </p>
+                </div>
               </motion.div>
             </motion.div>
           </div>

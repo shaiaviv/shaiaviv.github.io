@@ -10,10 +10,15 @@ import Projects from './components/Projects'
 import Skills from './components/Skills'
 import Contact from './components/Contact'
 import AchievementToasts from './components/AchievementToasts'
+import UnlockBanners from './components/UnlockBanners'
 import { unlockAchievement, ACHIEVEMENTS } from './lib/achievements'
+import { isUnlocked } from './lib/unlocks'
+import { dropEverything } from './lib/gravity'
+import { installConsoleEgg, flashXray } from './lib/xray'
 import { burstConfetti } from './lib/confetti'
 
 const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']
+const GRAVITY_WORD = 'gravity'
 
 const SWEEP_SECONDS = 5
 
@@ -73,9 +78,28 @@ export default function App() {
   const sweeping = useRef(false)
 
   useEffect(() => {
+    // Two buffers because the codes are different shapes: konami mixes arrow
+    // names with letters, while "gravity" is plain typed text.
     let progress: string[] = []
+    let typed = ''
+
     const onKey = (e: KeyboardEvent) => {
+      // Never fight a real text field for the visitor's keystrokes.
+      const el = e.target as HTMLElement | null
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return
+
       const key = e.key.length === 1 ? e.key.toLowerCase() : e.key
+
+      if (key.length === 1) {
+        typed = (typed + key).slice(-GRAVITY_WORD.length)
+        // Gated: the word does nothing until the visitor has seen every
+        // screenshot of a project and been told about it.
+        if (typed === GRAVITY_WORD && isUnlocked('gravity')) {
+          dropEverything()
+          unlockAchievement(ACHIEVEMENTS.gravity)
+        }
+      }
+
       progress = [...progress, key].slice(-KONAMI.length)
       if (progress.join(',') !== KONAMI.join(',')) return
       if (sweeping.current) return
@@ -84,8 +108,18 @@ export default function App() {
       burstConfetti(window.innerWidth / 2, window.innerHeight / 2, 140)
       unlockAchievement(ACHIEVEMENTS.konami)
     }
+
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  // The riddle on the back of the polaroid answers "the console", so this is
+  // what has to be waiting there when a visitor works it out.
+  useEffect(() => {
+    installConsoleEgg(() => {
+      flashXray()
+      unlockAchievement(ACHIEVEMENTS.consoleHi)
+    })
   }, [])
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -104,6 +138,7 @@ export default function App() {
       <CursorGlow />
       <DoodleTrail />
       <AchievementToasts />
+      <UnlockBanners />
       {/*
         No AnimatePresence: the layers must vanish in a single frame when the
         pair cancels out. An exit animation would retract the first circle and

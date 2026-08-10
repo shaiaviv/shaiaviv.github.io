@@ -9,6 +9,19 @@ export interface Achievement {
  * Single source of truth for every easter egg on the site — the progress
  * counter's "total" is just this object's size, so adding a new egg here
  * automatically updates the hunt.
+ *
+ * Three of these are gated behind a discovery chain rather than being findable
+ * cold, and the hints live in the copy below (the badge panel renders each
+ * found egg's `message`, so a message is the natural place to plant the next
+ * breadcrumb):
+ *
+ *   polaroidFlip  → the riddle on the photo's back answers "the console"
+ *                 → the console greets you and names hiShai()          → consoleHi
+ *   open any project screenshot   → unlocks drawing  → draw a shape     → shapeShifter
+ *   view EVERY screenshot         → unlocks gravity  → type "gravity"   → gravity
+ *
+ * shapeShifter's message carries the nudge to view every screenshot, so the
+ * chain keeps pulling visitors deeper into the actual project work.
  */
 export const ACHIEVEMENTS: Record<string, Achievement> = {
   draggedSomething: {
@@ -27,7 +40,7 @@ export const ACHIEVEMENTS: Record<string, Achievement> = {
     id: 'konami',
     emoji: '🎉',
     title: 'Konami Code!',
-    message: 'You know the classics. Respect.',
+    message: 'You know the classics. Type it again to put the colours back.',
   },
   arkanoidStart: {
     id: 'arkanoid-start',
@@ -47,17 +60,54 @@ export const ACHIEVEMENTS: Record<string, Achievement> = {
     title: 'Domino run!',
     message: 'You drew on the page and watched the dots topple into a pile.',
   },
-  saidHello: {
-    id: 'said-hello',
-    emoji: '👋',
-    title: 'Nice!',
-    message: "Hope you actually hit send — I'll write back.",
+  polaroidFlip: {
+    id: 'polaroid-flip',
+    emoji: '🔖',
+    title: 'Flip side!',
+    message: 'You turned the photo over. Solve the riddle on the back and it points at the next egg.',
+  },
+  consoleHi: {
+    id: 'console-hi',
+    emoji: '🩻',
+    title: 'X-ray vision!',
+    message: 'You solved the riddle, opened the console, and called hiShai(). Proper developer behaviour.',
+  },
+  shapeShifter: {
+    id: 'shape-shifter',
+    emoji: '💫',
+    title: 'Shape shifter!',
+    message: 'Your scribble snapped into a perfect shape. Psst — open a project and look at EVERY screenshot to unlock one more egg.',
+  },
+  gravity: {
+    id: 'gravity',
+    emoji: '🪐',
+    title: 'Gravity!',
+    message: 'You typed the magic word and the whole page fell over. Type it again any time.',
   },
 }
 
 export const TOTAL_ACHIEVEMENTS = Object.keys(ACHIEVEMENTS).length
 
 export const ACHIEVEMENT_EVENT = 'portfolio:achievement'
+
+/**
+ * The payoff for clearing the board. Anyone who finds all ten has spent real
+ * time on the site, so the reward is a one-click warm intro rather than more
+ * confetti — the body carries a code only a completionist could have seen, and
+ * trails off mid-sentence so they finish it with the actual pitch.
+ */
+export const COMPLETION_EMAIL = 'shaiaviv99@gmail.com'
+export const COMPLETION_CODE = 'Pool Party'
+export const COMPLETION_SUBJECT = 'I found all your easter eggs'
+export const COMPLETION_BODY =
+  'I found all your easter eggs and to prove it here\'s the secret code that only a true easter egg ' +
+  `hunter could unlock: "${COMPLETION_CODE}". Now that I\'ve gotten your attention by completing all ` +
+  'easter eggs, I\'d like to see if you\'re interested in the following role:'
+
+export function completionMailto() {
+  const params = `subject=${encodeURIComponent(COMPLETION_SUBJECT)}&body=${encodeURIComponent(COMPLETION_BODY)}`
+  return `mailto:${COMPLETION_EMAIL}?${params}`
+}
 
 export interface AchievementProgress {
   count: number

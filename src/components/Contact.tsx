@@ -2,7 +2,6 @@ import { useRef } from 'react'
 import { motion, useMotionValue, useSpring } from 'framer-motion'
 import RevealText from './RevealText'
 import { burstConfetti } from '../lib/confetti'
-import { unlockAchievement, ACHIEVEMENTS } from '../lib/achievements'
 import { dragBounce, dragWhile, onDragUnlock } from '../lib/dragProps'
 import { useDragSuppressClick } from '../hooks/useDragSuppressClick'
 
@@ -67,7 +66,6 @@ export default function Contact() {
   const handleSayHello = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 80)
-    unlockAchievement(ACHIEVEMENTS.saidHello)
   }
 
   return (
