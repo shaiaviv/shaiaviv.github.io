@@ -30,15 +30,39 @@ const MORPH_DAMP = 0.8
 const MORPH_HOLD_FRAMES = 62  // fly into formation, then hold it long enough to read
 const MIN_SHAPE_SIZE = 70     // px — smaller than this is a scribble, not a drawing
 
-/**
- * Elements that must never start a doodle: anything interactive, anything the
- * visitor might be selecting text inside of, and anything with its own painted
- * surface (cards, chips, stickers — caught by the computed-style walk below).
- */
+/** Anything interactive, or opted out — never a drawing surface, anywhere in its box. */
 const NEVER_DRAW =
   'a, button, input, textarea, select, label, canvas, svg, img, video, iframe, form, nav, header, footer, ' +
-  '[role="link"], [role="button"], [contenteditable], [data-no-doodle], ' +
-  'h1, h2, h3, h4, h5, h6, p, span, li, code, strong, em, b, i'
+  '[role="link"], [role="button"], [contenteditable], [data-no-doodle]'
+
+/** Text carriers, which only block where their glyphs actually are — see overText. */
+const TEXT_TAGS = 'h1, h2, h3, h4, h5, h6, p, span, li, code, strong, em, b, i, blockquote'
+
+const TEXT_PAD = 3
+
+/**
+ * Is the point on this element's rendered TEXT, rather than merely inside its
+ * box? A text block is a full-width rectangle with ragged contents: the gap to
+ * the right of a short last line, and the leading between lines, all hit-test as
+ * the paragraph while being visually bare page. Treating the whole box as text
+ * meant a drag starting in that blank space refused to draw AND let the browser
+ * start a selection, so the gesture selected a sentence instead of drawing.
+ *
+ * Range line rects are the glyphs' real footprint, which is what the visitor is
+ * actually aiming at — plus a few px of slack so grabbing the text stays easy.
+ */
+function overText(el: Element, x: number, y: number): boolean {
+  const range = document.createRange()
+  range.selectNodeContents(el)
+  for (const r of range.getClientRects()) {
+    if (r.width === 0 || r.height === 0) continue
+    if (
+      x >= r.left - TEXT_PAD && x <= r.right + TEXT_PAD &&
+      y >= r.top - TEXT_PAD && y <= r.bottom + TEXT_PAD
+    ) return true
+  }
+  return false
+}
 
 /**
  * True only for the page's own empty scaffolding. Rather than enumerate every
@@ -46,9 +70,14 @@ const NEVER_DRAW =
  * target: if anything between it and the doodle root paints a background,
  * border, or shadow, the click landed ON something, not on the backdrop.
  */
-function isBackdrop(target: EventTarget | null): boolean {
+function isBackdrop(target: EventTarget | null, x: number, y: number): boolean {
   if (!(target instanceof Element)) return false
   if (target.closest(NEVER_DRAW)) return false
+
+  for (let el: Element | null = target; el; el = el.parentElement) {
+    if (el.hasAttribute('data-doodle-root') || el === document.body) break
+    if (el.matches(TEXT_TAGS) && overText(el, x, y)) return false
+  }
 
   for (let el: Element | null = target; el; el = el.parentElement) {
     if (el.hasAttribute('data-doodle-root') || el === document.body) return true
@@ -428,7 +457,7 @@ export default function DoodleTrail() {
 
     const onDown = (e: MouseEvent) => {
       if (e.button !== 0 || drawing) return
-      if (!isBackdrop(e.target)) return
+      if (!isBackdrop(e.target, e.clientX, e.clientY)) return
       e.preventDefault() // no text selection dragging along with the stroke
 
       drawing = {
