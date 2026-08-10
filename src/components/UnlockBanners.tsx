@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { UNLOCK_EVENT, type Unlock } from '../lib/unlocks'
+import { ACHIEVEMENT_EVENT, type AchievementToast } from '../lib/achievements'
 
 /**
  * Sticky announcements for newly unlocked abilities, stacked at the top of the
@@ -16,12 +17,23 @@ export default function UnlockBanners() {
   const [banners, setBanners] = useState<Unlock[]>([])
 
   useEffect(() => {
-    const handle = (e: Event) => {
+    const onUnlock = (e: Event) => {
       const detail = (e as CustomEvent<Unlock>).detail
       setBanners((prev) => (prev.some((b) => b.id === detail.id) ? prev : [...prev, detail]))
     }
-    window.addEventListener(UNLOCK_EVENT, handle)
-    return () => window.removeEventListener(UNLOCK_EVENT, handle)
+    // Once the instruction has been carried out, the banner closes itself —
+    // the achievement toast is the confirmation, so leaving the "now do this"
+    // banner up alongside it just tells the visitor to do what they just did.
+    const onAchievement = (e: Event) => {
+      const { id } = (e as CustomEvent<AchievementToast>).detail
+      setBanners((prev) => prev.filter((b) => b.completedBy !== id))
+    }
+    window.addEventListener(UNLOCK_EVENT, onUnlock)
+    window.addEventListener(ACHIEVEMENT_EVENT, onAchievement)
+    return () => {
+      window.removeEventListener(UNLOCK_EVENT, onUnlock)
+      window.removeEventListener(ACHIEVEMENT_EVENT, onAchievement)
+    }
   }, [])
 
   const dismiss = (id: string) => setBanners((prev) => prev.filter((b) => b.id !== id))

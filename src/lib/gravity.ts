@@ -16,7 +16,19 @@
  *     float-bob silently eat Framer's drag transforms in the hero.)
  */
 
-const FALL_MS = 2600
+/*
+ * Phases in real milliseconds rather than keyframe offsets, because the offsets
+ * are derived and the durations are what anyone actually wants to tune. REST_MS
+ * is the one that matters: it's how long everything lies on the floor before
+ * floating home, and a short rest reads as a bounce rather than as the page
+ * having genuinely fallen over.
+ */
+const FALL_MS = 1100     // accelerating drop to the floor
+const BOUNCE_MS = 320    // rebound and resettle
+const REST_MS = 2200     // lying there, defeated
+const RETURN_MS = 950    // float back home
+const TOTAL_MS = FALL_MS + BOUNCE_MS + REST_MS + RETURN_MS
+
 const MARGIN = 4
 
 /**
@@ -55,22 +67,27 @@ export function dropEverything(): number {
     const delay = launched * 14 + Math.random() * 90
     launched++
 
+    const landed = FALL_MS / TOTAL_MS
+    const apex = (FALL_MS + BOUNCE_MS * 0.45) / TOTAL_MS
+    const settled = (FALL_MS + BOUNCE_MS) / TOTAL_MS
+    const restEnd = (FALL_MS + BOUNCE_MS + REST_MS) / TOTAL_MS
+
     el.animate(
       [
         // accelerate downward — gravity, so ease IN, not out
         { transform: 'translateY(0px) rotate(0deg)', easing: 'cubic-bezier(0.45, 0, 1, 1)' },
         // impact, then rebound
-        { transform: `translateY(${fall}px) rotate(${spin}deg)`, offset: 0.42, easing: 'cubic-bezier(0, 0, 0.35, 1)' },
-        { transform: `translateY(${fall - bounce}px) rotate(${spin * 0.9}deg)`, offset: 0.54, easing: 'cubic-bezier(0.45, 0, 1, 1)' },
-        // settle on the floor and lie there for a beat
-        { transform: `translateY(${fall}px) rotate(${spin}deg)`, offset: 0.64 },
-        { transform: `translateY(${fall}px) rotate(${spin}deg)`, offset: 0.8, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+        { transform: `translateY(${fall}px) rotate(${spin}deg)`, offset: landed, easing: 'cubic-bezier(0, 0, 0.35, 1)' },
+        { transform: `translateY(${fall - bounce}px) rotate(${spin * 0.9}deg)`, offset: apex, easing: 'cubic-bezier(0.45, 0, 1, 1)' },
+        // settle on the floor and lie there
+        { transform: `translateY(${fall}px) rotate(${spin}deg)`, offset: settled },
+        { transform: `translateY(${fall}px) rotate(${spin}deg)`, offset: restEnd, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
         // and float home
         { transform: 'translateY(0px) rotate(0deg)' },
       ],
-      { duration: FALL_MS, delay, fill: 'none' },
+      { duration: TOTAL_MS, delay, fill: 'none' },
     )
   })
 
-  return launched ? FALL_MS + toys.length * 14 : 0
+  return launched ? TOTAL_MS + toys.length * 14 : 0
 }

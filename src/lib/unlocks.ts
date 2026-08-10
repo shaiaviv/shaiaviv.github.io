@@ -13,6 +13,12 @@ export interface Unlock {
   emoji: string
   title: string
   body: string
+  /**
+   * The achievement id that retires this banner. A banner is an instruction, so
+   * once the visitor has actually done the thing it stops being help and starts
+   * being clutter — UnlockBanners watches for this and closes itself.
+   */
+  completedBy: string
 }
 
 export const UNLOCKS: Record<UnlockId, Unlock> = {
@@ -21,12 +27,14 @@ export const UNLOCKS: Record<UnlockId, Unlock> = {
     emoji: '✏️',
     title: 'Drawing unlocked!',
     body: 'Click and hold on the page background and draw a circle or a heart — then let go and watch what happens to it.',
+    completedBy: 'shape-shifter',
   },
   gravity: {
     id: 'gravity',
     emoji: '🪐',
     title: 'Gravity mode unlocked!',
     body: 'You looked at every single screenshot. Now type "gravity" anywhere on the page to knock the whole thing over.',
+    completedBy: 'gravity',
   },
 }
 
