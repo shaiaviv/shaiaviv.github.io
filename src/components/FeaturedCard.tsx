@@ -1,86 +1,101 @@
-import { useRef, useState } from 'react'
-import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from 'framer-motion'
+import { useState } from 'react'
+import { motion } from 'framer-motion'
 import type { Project } from '../data/projects'
 import ScreenshotLightbox from './ScreenshotLightbox'
 
 const languageColors: Record<string, string> = {
-  JavaScript: '#f7df1e',
-  TypeScript: '#3178c6',
-  Swift: '#f05138',
-  Python: '#3776ab',
-  Java: '#b07219',
-  Dart: '#00b4ab',
+  JavaScript: '#ffc23c',
+  TypeScript: '#6c5ce7',
+  Swift: '#ff6b57',
+  Python: '#06d6a0',
+  Java: '#8a8172',
+  Dart: '#06d6a0',
 }
 
 export default function FeaturedCard({ project }: { project: Project }) {
-  const ref = useRef<HTMLDivElement>(null)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const hasScreenshots = !!project.screenshots?.length
 
-  const mouseX = useMotionValue(0.5)
-  const mouseY = useMotionValue(0.5)
-  const spotX = useTransform(mouseX, [0, 1], [0, 100])
-  const spotY = useTransform(mouseY, [0, 1], [0, 100])
-  const spotlightBg = useMotionTemplate`radial-gradient(380px circle at ${spotX}% ${spotY}%, rgba(0,229,160,0.08), transparent 65%)`
-
-  // 3D tilt — same physics as ProjectCard but gentler (larger card = subtler rotation)
-  const rawRotateX = useTransform(mouseY, [0, 1], [3, -3])
-  const rawRotateY = useTransform(mouseX, [0, 1], [-3, 3])
-  const rotateX = useSpring(rawRotateX, { stiffness: 180, damping: 24 })
-  const rotateY = useSpring(rawRotateY, { stiffness: 180, damping: 24 })
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    mouseX.set((e.clientX - rect.left) / rect.width)
-    mouseY.set((e.clientY - rect.top) / rect.height)
-  }
-  const handleMouseLeave = () => { mouseX.set(0.5); mouseY.set(0.5) }
-
   return (
     <>
     <motion.div
-      ref={ref}
-      style={{ rotateX, rotateY, transformPerspective: 900, transformStyle: 'preserve-3d' }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="relative glass-card rounded-2xl overflow-hidden group
-        hover:border-accent/15 hover:shadow-[0_16px_60px_rgba(0,229,160,0.07)]
-        transition-[border-color,box-shadow] duration-400"
+      initial={{ rotate: -0.8 }}
+      whileHover={{ rotate: 0, y: -8 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+      onClick={() => { if (project.repo) window.open(project.repo, '_blank', 'noopener,noreferrer') }}
+      role={project.repo ? 'link' : undefined}
+      tabIndex={project.repo ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (project.repo && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault()
+          window.open(project.repo, '_blank', 'noopener,noreferrer')
+        }
+      }}
+      aria-label={project.repo ? `Open ${project.name} on GitHub` : undefined}
+      className={`sticker bg-surface rounded-[28px] relative ${project.repo ? 'cursor-pointer' : ''}`}
     >
-      {/* Spotlight */}
-      <motion.div className="absolute inset-0 pointer-events-none rounded-2xl" style={{ background: spotlightBg }} />
-
-      {/* Top accent line */}
-      <div
-        className="absolute top-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{ background: 'linear-gradient(90deg, transparent 0%, #00e5a0 50%, transparent 100%)' }}
-      />
-
-      <div className="relative z-10 flex flex-col md:flex-row gap-0">
-        {/* Left: content */}
-        <div className="flex-1 p-8 md:p-10 flex flex-col justify-between">
-          <div>
-            {/* Featured label */}
-            <div className="flex items-center gap-2 mb-6">
-              <span className="font-mono text-xs text-accent tracking-widest uppercase">Featured Project</span>
-              <span className="flex-1 h-px bg-accent/20" />
+      <div className="relative z-10 rounded-[25px] overflow-hidden">
+        {/* Image — the star of the card */}
+        {hasScreenshots && (
+          <motion.button
+            whileHover={{ scale: 1.015 }}
+            onClick={(e) => { e.stopPropagation(); setLightboxIndex(0); setLightboxOpen(true) }}
+            className="relative w-full bg-surface-2 border-b-[3px] border-text-1 flex items-center justify-center p-5 md:p-8 group/shot"
+            aria-label={`View ${project.name} screenshots`}
+          >
+            <img
+              src={project.screenshots![0].src}
+              alt={`${project.name} screenshot`}
+              loading="lazy"
+              className="max-h-[22rem] w-auto max-w-full object-contain rounded-xl border-[3px] border-text-1 shadow-pop-sm"
+            />
+            <div className="absolute inset-0 bg-text-1/0 group-hover/shot:bg-text-1/40 transition-colors duration-200 flex items-center justify-center">
+              <span className="opacity-0 group-hover/shot:opacity-100 transition-opacity duration-200 font-mono text-xs text-white font-bold bg-accent px-3 py-1.5 rounded-full">
+                View {project.screenshots!.length} screenshots
+              </span>
             </div>
 
-            <h3 className="text-3xl font-black text-text-1 tracking-tight mb-3 group-hover:text-accent transition-colors duration-200">
+            {/* Badges overlaid on the image panel */}
+            <div className="absolute top-4 right-4 flex items-center gap-2">
+              <span className="chip flex items-center gap-1.5 bg-surface px-2.5 py-1 rounded-full">
+                <span className="w-2.5 h-2.5 rounded-full border border-text-1" style={{ backgroundColor: languageColors[project.language] ?? '#8a8172' }} />
+                <span className="font-mono text-[0.65rem] text-text-1 font-bold">{project.language}</span>
+              </span>
+              <span className="chip font-mono text-[0.65rem] text-text-1 bg-green px-2.5 py-1 rounded-full font-bold">
+                Live
+              </span>
+            </div>
+          </motion.button>
+        )}
+
+        {/* Content */}
+        <div className="p-8 md:p-10 flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="font-mono text-xs text-accent tracking-widest uppercase font-bold">★ Featured Project</span>
+              {!hasScreenshots && (
+                <span className="chip flex items-center gap-1.5 bg-surface-2 px-2.5 py-1 rounded-full ml-1">
+                  <span className="w-2 h-2 rounded-full border border-text-1" style={{ backgroundColor: languageColors[project.language] ?? '#8a8172' }} />
+                  <span className="font-mono text-[0.65rem] text-text-1 font-bold">{project.language}</span>
+                </span>
+              )}
+            </div>
+
+            <h3 className="text-3xl font-display font-bold text-text-1 tracking-tight mb-3">
               {project.name}
             </h3>
 
-            <p className="text-text-2 leading-relaxed mb-8 max-w-lg text-base">
+            <p className="text-text-2 leading-relaxed mb-6 max-w-lg text-base font-medium">
               {project.description}
             </p>
 
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {project.tags.map((tag) => (
+            <div className="flex flex-wrap gap-2">
+              {project.tags.map((tag, i) => (
                 <span
                   key={tag}
-                  className="font-mono text-xs text-accent/80 bg-accent/8 border border-accent/12 px-3 py-1 rounded-lg"
+                  className="chip font-mono text-xs text-text-1 bg-surface-2 px-3 py-1 rounded-lg"
+                  style={{ transform: `rotate(${i % 2 === 0 ? -2 : 2}deg)` }}
                 >
                   {tag}
                 </span>
@@ -88,14 +103,14 @@ export default function FeaturedCard({ project }: { project: Project }) {
             </div>
           </div>
 
-          {/* Links */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 shrink-0">
             {project.repo && (
               <a
                 href={project.repo}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-text-2 hover:text-accent transition-colors duration-200"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-2 text-sm font-bold text-text-2 hover:text-accent transition-colors duration-200"
               >
                 <svg style={{ width: 16, height: 16 }} fill="currentColor" viewBox="0 0 24 24">
                   <path fillRule="evenodd" clipRule="evenodd"
@@ -109,7 +124,8 @@ export default function FeaturedCard({ project }: { project: Project }) {
                 href={project.live}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover text-background rounded-lg text-sm font-bold transition-colors duration-200"
+                onClick={(e) => e.stopPropagation()}
+                className="sticker-btn inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-white rounded-full text-sm font-bold"
               >
                 Live Demo
                 <svg style={{ width: 14, height: 14 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -117,53 +133,6 @@ export default function FeaturedCard({ project }: { project: Project }) {
                 </svg>
               </a>
             )}
-          </div>
-        </div>
-
-        {/* Right: visual panel */}
-        <div className="md:w-72 border-t md:border-t-0 md:border-l border-accent/[0.06] bg-accent/[0.02] flex flex-col items-center justify-center p-6 md:p-8 gap-5">
-          {/* Language badge */}
-          <div className="flex flex-col items-center gap-2">
-            <span
-              className="w-4 h-4 rounded-full"
-              style={{
-                backgroundColor: languageColors[project.language] ?? '#888',
-                boxShadow: `0 0 16px ${languageColors[project.language] ?? '#888'}90`,
-              }}
-            />
-            <span className="font-mono text-xs text-muted tracking-wide">{project.language}</span>
-          </div>
-
-          {hasScreenshots ? (
-            <button
-              onClick={(e) => { e.stopPropagation(); setLightboxIndex(0); setLightboxOpen(true) }}
-              className="relative w-full aspect-video rounded-lg overflow-hidden border border-white/[0.1] hover:border-accent/40 transition-colors duration-200 group/shot"
-              aria-label={`View ${project.name} screenshots`}
-            >
-              <img
-                src={project.screenshots![0].src}
-                alt={`${project.name} screenshot`}
-                loading="lazy"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-background/0 group-hover/shot:bg-background/60 transition-colors duration-200 flex items-center justify-center">
-                <span className="opacity-0 group-hover/shot:opacity-100 transition-opacity duration-200 font-mono text-xs text-text-1 bg-white/[0.08] border border-white/[0.15] px-3 py-1.5 rounded-full">
-                  View {project.screenshots!.length} screenshots
-                </span>
-              </div>
-            </button>
-          ) : (
-            /* Decorative grid of dots — fixed opacity pattern */
-            <div className="grid grid-cols-6 gap-2 opacity-20">
-              {[1,0,1,1,0,1, 0,1,1,0,1,0, 1,1,0,1,0,1, 0,1,0,1,1,0, 1,0,1,0,1,1].map((on, i) => (
-                <div key={i} className="w-1 h-1 rounded-full bg-accent" style={{ opacity: on ? 1 : 0.25 }} />
-              ))}
-            </div>
-          )}
-
-          <div className="text-center">
-            <div className="font-mono text-[0.65rem] text-muted tracking-widest uppercase mb-1">Status</div>
-            <div className="font-mono text-xs text-accent font-semibold">Live in Production</div>
           </div>
         </div>
       </div>

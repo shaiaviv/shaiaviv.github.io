@@ -1,11 +1,14 @@
 import { useRef } from 'react'
-import { motion, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
+import { motion, useMotionValue, useSpring } from 'framer-motion'
 import RevealText from './RevealText'
+import { burstConfetti } from '../lib/confetti'
+import { unlockAchievement } from '../lib/achievements'
 
 function MagneticLink({
-  href, children, primary, external,
+  href, children, primary, external, onClick,
 }: {
   href: string; children: React.ReactNode; primary?: boolean; external?: boolean
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
 }) {
   const ref = useRef<HTMLAnchorElement>(null)
   const x = useMotionValue(0)
@@ -27,13 +30,14 @@ function MagneticLink({
       target={external ? '_blank' : undefined}
       rel={external ? 'noopener noreferrer' : undefined}
       style={{ x: springX, y: springY }}
-      whileTap={{ scale: 0.96 }}
+      whileTap={{ scale: 0.94 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      onClick={onClick}
       className={
         primary
-          ? 'px-8 py-4 bg-accent hover:bg-accent-hover text-background rounded-xl font-bold text-sm glow-accent transition-colors duration-200 inline-block tracking-wide'
-          : 'p-3.5 rounded-xl glass-card border border-accent/[0.08] hover:border-accent/25 text-muted hover:text-accent transition-colors duration-200 inline-flex items-center justify-center'
+          ? 'sticker-btn px-8 py-4 bg-accent hover:bg-accent-hover text-white rounded-2xl font-bold text-sm transition-colors duration-200 inline-block tracking-wide'
+          : 'sticker-btn p-3.5 rounded-2xl bg-surface text-text-1 hover:bg-surface-2 transition-colors duration-200 inline-flex items-center justify-center'
       }
     >
       {children}
@@ -43,36 +47,33 @@ function MagneticLink({
 
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start end', 'end start'],
-  })
-  // Watermark drifts upward, rotates, and scales as section scrolls —
-  // three simultaneous transforms on one element create compelling motion depth
-  // Contact is the last section — scrollYProgress tops out ~0.55 before the page ends,
-  // so map the animation into the reachable [0, 0.6] range and use larger values
-  const rawY     = useTransform(scrollYProgress, [0, 0.6], [80, -60])
-  const rawScale = useTransform(scrollYProgress, [0, 0.6], [0.88, 1.08])
 
-  // Spring smoothing — rotation removed (large text renders rough mid-rotation)
-  const watermarkY     = useSpring(rawY,     { stiffness: 40, damping: 25 })
-  const watermarkScale = useSpring(rawScale, { stiffness: 40, damping: 25 })
-  const watermarkRotate = 0
+  const handleSayHello = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 80)
+    unlockAchievement({
+      id: 'said-hello',
+      emoji: '👋',
+      title: 'Nice!',
+      message: "Hope you actually hit send — I'll write back.",
+    })
+  }
 
   return (
     <section id="contact" ref={sectionRef} className="py-36 px-6 relative overflow-hidden">
-      {/* Watermark with parallax */}
+      {/* Watermark */}
       <motion.div
         className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-        style={{ y: watermarkY, rotate: watermarkRotate, scale: watermarkScale }}
         aria-hidden="true"
+        animate={{ rotate: [-1, 1, -1] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       >
         <span
-          className="font-black tracking-tighter leading-none"
+          className="font-display font-bold tracking-tighter leading-none"
           style={{
             fontSize: 'clamp(6rem, 22vw, 18rem)',
             color: 'transparent',
-            WebkitTextStroke: '2px rgba(0,229,160,0.18)',
+            WebkitTextStroke: '3px rgba(108,92,231,0.14)',
           }}
         >
           HELLO
@@ -90,7 +91,7 @@ export default function Contact() {
           <div className="section-label justify-center mb-8">Contact</div>
 
           <h3
-            className="font-black text-text-1 tracking-tight leading-tight mb-6"
+            className="font-display font-bold text-text-1 tracking-tight leading-tight mb-6"
             style={{ fontSize: 'clamp(2.5rem, 7vw, 4.5rem)' }}
           >
             <RevealText>Let's build</RevealText>
@@ -100,13 +101,13 @@ export default function Contact() {
             </span>
           </h3>
 
-          <p className="text-text-2 mb-12 leading-relaxed text-lg max-w-md mx-auto">
-            Whether you have a project in mind, want to collaborate, or just want to say hi.
-            my inbox is always open.
+          <p className="text-text-2 mb-12 leading-relaxed text-lg max-w-md mx-auto font-medium">
+            Whether you have a project in mind, want to collaborate, or just want to say hi —
+            my inbox is always open. (Try the button, it's satisfying.)
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <MagneticLink href="mailto:shaiaviv99@gmail.com" primary>
+            <MagneticLink href="mailto:shaiaviv99@gmail.com" primary onClick={handleSayHello}>
               Say Hello →
             </MagneticLink>
           </div>

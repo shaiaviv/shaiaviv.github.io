@@ -33,44 +33,44 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      initial={{ y: -24, opacity: 0 }}
+      initial={{ y: -40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled ? 'glass border-b border-accent/[0.07] shadow-[0_1px_60px_rgba(0,0,0,0.7)]' : ''
-      }`}
+      className="fixed top-4 left-0 right-0 z-50 px-4"
     >
-      <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-        <a
+      <div
+        className={`max-w-3xl mx-auto flex items-center justify-between rounded-full px-3 py-2 transition-shadow duration-300 ${
+          scrolled ? 'sticker bg-surface' : 'bg-surface/70 backdrop-blur-sm border-2 border-transparent'
+        }`}
+      >
+        <motion.a
           href="#"
-          className="font-mono text-sm font-bold tracking-widest hover:opacity-70 transition-opacity duration-200"
+          whileHover={{ rotate: -6, scale: 1.05 }}
+          className="font-display text-sm font-bold tracking-wide pl-2.5 pr-1"
         >
-          <span className="text-text-2">&lt;</span>
-          <span className="text-accent">shai</span>
-          <span className="text-cyan">.dev</span>
-          <span className="text-text-2"> /&gt;</span>
-        </a>
+          <span className="text-accent">Shai</span>
+          <span className="text-text-1">.dev</span>
+        </motion.a>
 
-        <ul className="flex items-center gap-8">
+        <ul className="hidden sm:flex items-center gap-1">
           {links.map((link) => {
             const isActive = activeSection === link.href.slice(1)
             return (
               <li key={link.href}>
                 <a
                   href={link.href}
-                  className={`relative text-sm tracking-wide transition-colors duration-200 font-medium ${
-                    isActive ? 'text-text-1' : 'text-muted hover:text-text-2'
+                  className={`relative text-sm px-3 py-1.5 rounded-full transition-colors duration-200 font-bold ${
+                    isActive ? 'text-white' : 'text-text-2 hover:text-text-1'
                   }`}
                 >
-                  {link.label}
                   {isActive && (
                     <motion.span
                       layoutId="nav-indicator"
-                      className="absolute -bottom-1.5 left-0 right-0 h-px"
-                      style={{ background: 'linear-gradient(90deg, #00e5a0, #00b8d4)' }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                      className="absolute inset-0 rounded-full bg-accent -z-10"
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     />
                   )}
+                  {link.label}
                 </a>
               </li>
             )
@@ -80,12 +80,22 @@ export default function Navbar() {
               href="/resume.pdf"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-mono font-medium text-accent border border-accent/30 hover:border-accent/70 hover:bg-accent/8 px-3 py-1.5 rounded-lg transition-all duration-200"
+              className="sticker-btn text-xs font-mono font-bold text-text-1 bg-green ml-1 px-3 py-1.5 rounded-full inline-block"
             >
               Resume
             </a>
           </li>
         </ul>
+
+        {/* Compact mobile-only resume link — full link list is hidden below sm */}
+        <a
+          href="/resume.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="sticker-btn sm:hidden text-xs font-mono font-bold text-text-1 bg-green px-3 py-1.5 rounded-full inline-block"
+        >
+          Resume
+        </a>
       </div>
     </motion.nav>
   )

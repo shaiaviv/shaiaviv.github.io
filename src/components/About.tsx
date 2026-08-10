@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion } from 'framer-motion'
 import RevealText from './RevealText'
 
 const containerVariants = {
@@ -12,31 +12,16 @@ const itemVariants = {
 }
 
 const highlights = [
-  'React · Node.js · TypeScript',
-  'WebSockets & REST APIs',
-  'Flutter / Dart',
-  'Firebase & MongoDB',
-  'AI-Native Development',
-  'Cyber & Networking (IDF)',
+  { label: 'React · Node.js · TypeScript', color: 'bg-accent-dim' },
+  { label: 'WebSockets & REST APIs', color: 'bg-cyan/15' },
+  { label: 'Flutter / Dart', color: 'bg-pink/15' },
+  { label: 'Firebase & MongoDB', color: 'bg-green/25' },
+  { label: 'AI-Native Development', color: 'bg-accent-dim' },
+  { label: 'Cyber & Networking (IDF)', color: 'bg-cyan/15' },
 ]
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null)
-  const imgRef = useRef<HTMLDivElement>(null)
-
-  // Image floats up at a different rate than surrounding text
-  const { scrollYProgress: imgProgress } = useScroll({
-    target: imgRef,
-    offset: ['start end', 'end start'],
-  })
-  const imageY = useTransform(imgProgress, [0, 1], [60, -60])
-
-  // Text block drifts slightly slower
-  const { scrollYProgress: textProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start end', 'end start'],
-  })
-  const textY = useTransform(textProgress, [0, 1], [30, -20])
 
   return (
     <section id="about" ref={sectionRef} className="py-32 px-6">
@@ -52,63 +37,56 @@ export default function About() {
           </motion.div>
 
           <div className="flex flex-col md:flex-row gap-16 items-start">
-            {/* Text with subtle parallax */}
-            <motion.div
-              variants={itemVariants}
-              style={{ y: textY }}
-              className="flex-1 space-y-5"
-            >
-              <p className="text-text-2 leading-relaxed text-[1.075rem]">
+            {/* Text */}
+            <motion.div variants={itemVariants} className="flex-1 space-y-5">
+              <p className="text-text-2 leading-relaxed text-[1.1rem] font-medium">
                 AI-native software engineer with a product mindset and a B.Sc. in Computer
                 Science from Bar-Ilan University (GPA: 87.5).
               </p>
-              <p className="text-text-2 leading-relaxed text-[1.075rem]">
+              <p className="text-text-2 leading-relaxed text-[1.1rem] font-medium">
                 Driven by an eagerness to learn new technologies, patterns, and systems,
                 with a desire to build products end-to-end.
               </p>
-              <p className="text-text-2 leading-relaxed text-[1.075rem]">
+              <p className="text-text-2 leading-relaxed text-[1.1rem] font-medium">
                 Sees AI as a core part of engineering, not a layer on top: embedded in
                 the workflow, the tooling, and the products themselves.
               </p>
 
-              <div className="flex flex-wrap gap-2 pt-2">
-                {highlights.map((h) => (
+              <div className="flex flex-wrap gap-2.5 pt-3">
+                {highlights.map((h, i) => (
                   <motion.span
-                    key={h}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
+                    key={h.label}
+                    initial={{ opacity: 0, scale: 0.8, rotate: -8 }}
+                    whileInView={{ opacity: 1, scale: 1, rotate: i % 2 === 0 ? -2 : 2 }}
+                    whileHover={{ rotate: 0, y: -3, scale: 1.05 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className="px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-accent bg-accent/8 border border-accent/15"
+                    className={`chip px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold text-text-1 ${h.color}`}
                   >
-                    {h}
+                    {h.label}
                   </motion.span>
                 ))}
               </div>
             </motion.div>
 
-            {/* Image with independent parallax — floats at a different depth */}
-            <motion.div
-              ref={imgRef}
-              variants={itemVariants}
-              style={{ y: imageY }}
-              className="flex-shrink-0 self-start"
-            >
+            {/* Polaroid photo */}
+            <motion.div variants={itemVariants} className="flex-shrink-0 self-start">
               <motion.div
-                className="relative group"
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                className="relative bg-surface sticker p-3 pb-6 rounded-lg"
+                initial={{ rotate: -4 }}
+                whileHover={{ rotate: 0, scale: 1.03, y: -4 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
               >
-                <div
-                  className="absolute -inset-4 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{ background: 'radial-gradient(circle, rgba(0,229,160,0.12) 0%, transparent 70%)', filter: 'blur(20px)' }}
-                />
-                <div className="absolute inset-0 rounded-2xl border border-accent/20 translate-x-3 translate-y-3 group-hover:translate-x-4 group-hover:translate-y-4 transition-transform duration-300" />
+                {/* Tape corner */}
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-green/60 border border-text-1/20 rotate-[-3deg]" />
                 <img
                   src="https://avatars.githubusercontent.com/u/118115930?v=4"
                   alt="Shai Aviv"
-                  className="relative w-52 h-52 md:w-60 md:h-60 rounded-2xl object-cover border border-white/8 grayscale group-hover:grayscale-0 transition-all duration-700"
+                  className="relative w-48 h-48 md:w-56 md:h-56 object-cover"
                 />
+                <p className="text-center font-display text-sm font-bold text-text-1 mt-3">
+                  <RevealText>build. ship. repeat.</RevealText>
+                </p>
               </motion.div>
             </motion.div>
           </div>

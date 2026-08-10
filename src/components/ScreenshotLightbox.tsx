@@ -45,14 +45,14 @@ export default function ScreenshotLightbox({ screenshots, projectName, isOpen, i
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-10 bg-background/90 backdrop-blur-md"
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-10 bg-text-1/90 backdrop-blur-md"
         onClick={onClose}
       >
         {/* Close button */}
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center bg-white/[0.06] border border-white/[0.1] text-text-2 hover:text-text-1 hover:border-accent/30 transition-colors duration-200"
+          className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center bg-white/10 border-2 border-white/20 text-white/80 hover:text-white hover:border-accent transition-colors duration-200"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -60,7 +60,7 @@ export default function ScreenshotLightbox({ screenshots, projectName, isOpen, i
         </button>
 
         {/* Counter */}
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 font-mono text-xs text-muted tracking-widest">
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 font-mono text-xs text-white/60 tracking-widest font-bold">
           {index + 1} / {total}
         </div>
 
@@ -70,7 +70,7 @@ export default function ScreenshotLightbox({ screenshots, projectName, isOpen, i
             <button
               onClick={(e) => { e.stopPropagation(); goPrev() }}
               aria-label="Previous screenshot"
-              className="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center bg-white/[0.06] border border-white/[0.1] text-text-2 hover:text-accent hover:border-accent/30 transition-colors duration-200"
+              className="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center bg-white/10 border-2 border-white/20 text-white/80 hover:text-accent hover:border-accent transition-colors duration-200"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -79,7 +79,7 @@ export default function ScreenshotLightbox({ screenshots, projectName, isOpen, i
             <button
               onClick={(e) => { e.stopPropagation(); goNext() }}
               aria-label="Next screenshot"
-              className="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center bg-white/[0.06] border border-white/[0.1] text-text-2 hover:text-accent hover:border-accent/30 transition-colors duration-200"
+              className="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center bg-white/10 border-2 border-white/20 text-white/80 hover:text-accent hover:border-accent transition-colors duration-200"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -100,10 +100,10 @@ export default function ScreenshotLightbox({ screenshots, projectName, isOpen, i
           <img
             src={current.src}
             alt={current.caption ?? `${projectName} screenshot ${index + 1}`}
-            className="max-h-[75vh] max-w-full rounded-xl border border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.5)] object-contain"
+            className="max-h-[75vh] max-w-full rounded-xl border-2 border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.5)] object-contain"
           />
           {current.caption && (
-            <p className="font-mono text-sm text-text-2 text-center">{current.caption}</p>
+            <p className="font-mono text-sm text-white/80 text-center font-bold">{current.caption}</p>
           )}
 
           {/* Thumbnail strip */}
@@ -114,8 +114,8 @@ export default function ScreenshotLightbox({ screenshots, projectName, isOpen, i
                   key={shot.src}
                   onClick={() => onIndexChange(i)}
                   aria-label={`Go to screenshot ${i + 1}`}
-                  className={`shrink-0 w-12 h-12 rounded-md overflow-hidden border transition-colors duration-200 ${
-                    i === index ? 'border-accent' : 'border-white/[0.1] opacity-50 hover:opacity-80'
+                  className={`shrink-0 w-12 h-12 rounded-md overflow-hidden border-2 transition-colors duration-200 ${
+                    i === index ? 'border-accent' : 'border-white/20 opacity-50 hover:opacity-80'
                   }`}
                 >
                   <img src={shot.src} alt="" className="w-full h-full object-cover" />

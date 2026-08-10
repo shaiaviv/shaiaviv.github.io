@@ -22,7 +22,7 @@ export default function Projects() {
             Projects
           </motion.div>
           <h3
-            className="font-black text-text-1 tracking-tight leading-tight"
+            className="font-display font-bold text-text-1 tracking-tight leading-tight"
             style={{ fontSize: 'clamp(2rem, 5vw, 3.25rem)' }}
           >
             <RevealText>Things I've built</RevealText>
@@ -67,7 +67,7 @@ export default function Projects() {
             href="https://github.com/shaiaviv"
             target="_blank"
             rel="noopener noreferrer"
-            className="animated-underline inline-flex items-center gap-2 text-sm text-muted hover:text-accent transition-colors duration-200 font-mono"
+            className="animated-underline inline-flex items-center gap-2 text-sm text-text-2 hover:text-accent transition-colors duration-200 font-mono font-bold"
           >
             View more on GitHub
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

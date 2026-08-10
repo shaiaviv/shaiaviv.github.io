@@ -1,17 +1,26 @@
 import { useEffect, useRef } from 'react'
 import { motion, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
 
+const BALL_COLORS = [
+  'rgba(108, 92, 231, 0.55)',  // violet
+  'rgba(255, 107, 87, 0.5)',   // coral
+  'rgba(255, 194, 60, 0.55)',  // sunshine
+  'rgba(6, 214, 160, 0.45)',   // mint
+]
+
 export default function Background() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const { scrollY } = useScroll()
-  const blob1Y = useTransform(scrollY, [0, 2000], [0, -180])
-  const blob2Y = useTransform(scrollY, [0, 2000], [0, 120])
+  const blob1Y = useTransform(scrollY, [0, 2000], [0, -160])
+  const blob2Y = useTransform(scrollY, [0, 2000], [0, 140])
+  const blob3Y = useTransform(scrollY, [0, 2000], [0, -100])
 
   const rawMouseX = useMotionValue(0.5)
   const smoothMouseX = useSpring(rawMouseX, { stiffness: 40, damping: 15 })
-  const blob1X = useTransform(smoothMouseX, [0, 1], [-50, 50])
-  const blob2X = useTransform(smoothMouseX, [0, 1], [40, -40])
+  const blob1X = useTransform(smoothMouseX, [0, 1], [-40, 40])
+  const blob2X = useTransform(smoothMouseX, [0, 1], [30, -30])
+  const blob3X = useTransform(smoothMouseX, [0, 1], [-25, 25])
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
@@ -21,314 +30,162 @@ export default function Background() {
     return () => window.removeEventListener('mousemove', onMouseMove)
   }, [rawMouseX])
 
+  // ── ambient "desk toy" balls — soft gummy circles that drift and nudge away from the cursor ──
   useEffect(() => {
     const canvas = canvasRef.current!
     const ctx = canvas.getContext('2d')!
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    // ── static starfield ──────────────────────────────
-    // Stars follow a real magnitude distribution: mostly dim, a few brilliant
-    type BgStar = {
-      x: number; y: number; r: number; base: number
-      phase: number; spd: number
-      bright: boolean   // true → draw atmospheric glow halo
-      glowR: number     // pre-computed glow radius
-    }
-    let bgStars: BgStar[] = []
-
-    const initStars = () => {
-      const count = Math.floor((canvas.width * canvas.height) / 5200)
-      bgStars = Array.from({ length: count }, () => {
-        const roll = Math.random()
-        let r: number, base: number, bright: boolean, glowR: number
-        if (roll < 0.65) {
-          // dim  (~65%) — faint background wash
-          r     = Math.random() * 0.3 + 0.1
-          base  = Math.random() * 0.18 + 0.07
-          bright = false; glowR = 0
-        } else if (roll < 0.90) {
-          // medium (~25%) — clearly visible
-          r     = Math.random() * 0.35 + 0.35
-          base  = Math.random() * 0.25 + 0.30
-          bright = false; glowR = 0
-        } else if (roll < 0.98) {
-          // bright (~8%) — prominent, slight glow
-          r     = Math.random() * 0.45 + 0.65
-          base  = Math.random() * 0.20 + 0.60
-          bright = true
-          glowR = r * 4.5
-        } else {
-          // very bright (~2%) — standout stars (Sirius-class)
-          r     = Math.random() * 0.5 + 1.1
-          base  = Math.random() * 0.10 + 0.90
-          bright = true
-          glowR = r * 6
-        }
-        return {
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          r, base, bright, glowR,
-          phase: Math.random() * Math.PI * 2,
-          spd: Math.random() * 0.012 + 0.003,
-        }
-      })
-    }
-
-    // ── shooting stars ────────────────────────────────
-    type ShootingStar = {
-      x: number; y: number
-      dx: number; dy: number
-      speed: number; tailLen: number
-      life: number; maxLife: number
-    }
-    let shooters: ShootingStar[] = []
-    let nextShoot = 200 + Math.random() * 280  // frames until first one
-
-    const spawnShooter = () => {
-      // Pick a random angle across all directions, but bias toward
-      // diagonals (avoid purely horizontal/vertical — looks unnatural)
-      const angle = Math.random() * Math.PI * 2
-      // Spawn along the edge that makes sense for the direction
-      const spawnX = Math.random() * canvas.width
-      const spawnY = Math.random() * canvas.height
-      shooters.push({
-        x: spawnX,
-        y: spawnY,
-        dx: Math.cos(angle),
-        dy: Math.sin(angle),
-        speed: 14 + Math.random() * 10,
-        tailLen: 90 + Math.random() * 90,
-        life: 55 + Math.floor(Math.random() * 35),
-        maxLife: 90,
-      })
-    }
-
-    // ── nebula offscreen cache ─────────────────────────
-    // Rendered once, blitted each frame — zero per-frame gradient cost.
-    const nebulaCanvas = document.createElement('canvas')
-    const nc = nebulaCanvas.getContext('2d')!
-
-    const NEBULA_PALETTE: [number, number, number][] = [
-      [110,  55, 210],  // violet
-      [ 40,  80, 220],  // deep blue
-      [  0, 140, 200],  // cerulean
-      [180,  35, 120],  // magenta-rose
-      [ 50, 160, 140],  // teal-green
-      [200,  80,  40],  // warm amber
-      [ 90,  40, 180],  // indigo
-    ]
-
-    const paintNebulas = () => {
-      nebulaCanvas.width  = canvas.width
-      nebulaCanvas.height = canvas.height
-      nc.clearRect(0, 0, nebulaCanvas.width, nebulaCanvas.height)
-
-      const count = 7 + Math.floor(Math.random() * 4)  // 7-10 nebulas
-      for (let i = 0; i < count; i++) {
-        const cx = Math.random() * nebulaCanvas.width
-        const cy = Math.random() * nebulaCanvas.height
-        for (let lobe = 0; lobe < 2; lobe++) {
-          const [r, g, b] = NEBULA_PALETTE[Math.floor(Math.random() * NEBULA_PALETTE.length)]
-          const radius = 120 + Math.random() * 280
-          const ox = (Math.random() - 0.5) * radius * 0.6
-          const oy = (Math.random() - 0.5) * radius * 0.6
-          const opacity = 0.028 + Math.random() * 0.042
-
-          const grd = nc.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, radius)
-          grd.addColorStop(0,    `rgba(${r},${g},${b},${opacity.toFixed(3)})`)
-          grd.addColorStop(0.35, `rgba(${r},${g},${b},${(opacity * 0.5).toFixed(3)})`)
-          grd.addColorStop(1,    `rgba(${r},${g},${b},0)`)
-
-          nc.beginPath()
-          nc.arc(cx + ox, cy + oy, radius, 0, Math.PI * 2)
-          nc.fillStyle = grd
-          nc.fill()
-        }
-      }
-    }
+    type Ball = { x: number; y: number; vx: number; vy: number; r: number; color: string }
+    let balls: Ball[] = []
 
     const resize = () => {
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
-      initStars()
-      paintNebulas()
+      const count = window.innerWidth < 768 ? 6 : 11
+      balls = Array.from({ length: count }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        r: 40 + Math.random() * 70,
+        color: BALL_COLORS[Math.floor(Math.random() * BALL_COLORS.length)],
+      }))
     }
-    // resize FIRST so canvas.width/height are correct before particles are placed
     resize()
-
-    // ── moving particles — initialized AFTER resize so positions use full viewport ──
-    const N = window.innerWidth < 768 ? 40 : 68
-    type Particle = { x: number; y: number; vx: number; vy: number; size: number }
-    const particles: Particle[] = Array.from({ length: N }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.18,
-      vy: (Math.random() - 0.5) * 0.18,
-      size: Math.random() * 1.1 + 0.3,
-    }))
     window.addEventListener('resize', resize, { passive: true })
 
-    let mouseX = -1000, mouseY = -1000
-    const onMouseMove = (e: MouseEvent) => { mouseX = e.clientX; mouseY = e.clientY }
-    window.addEventListener('mousemove', onMouseMove, { passive: true })
+    let mouseX = -2000, mouseY = -2000
+    const onMove = (e: MouseEvent) => { mouseX = e.clientX; mouseY = e.clientY }
+    window.addEventListener('mousemove', onMove, { passive: true })
 
-    const MAX_DIST = 130
-    const MOUSE_DIST = 210
-    // star-white for the network particles
-    const PR = 160, PG = 185, PB = 255
-    let frame = 0
+    const drawStatic = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      for (const b of balls) {
+        ctx.beginPath()
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2)
+        ctx.fillStyle = b.color
+        ctx.filter = 'blur(30px)'
+        ctx.fill()
+      }
+      ctx.filter = 'none'
+    }
+
+    if (reduceMotion) {
+      drawStatic()
+      return () => {
+        window.removeEventListener('resize', resize)
+        window.removeEventListener('mousemove', onMove)
+      }
+    }
+
     let raf: number
+    const REPEL_DIST = 220
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-      frame++
 
-      // ── blit pre-rendered nebulas (single texture draw — no per-frame gradients) ──
-      ctx.drawImage(nebulaCanvas, 0, 0)
+      for (const b of balls) {
+        b.x += b.vx
+        b.y += b.vy
 
-      // ── draw static starfield ──
-      for (const s of bgStars) {
-        const twinkle = 0.7 + 0.3 * Math.sin(frame * s.spd + s.phase)
-        const alpha = s.base * twinkle
-
-        // Bright stars: draw atmospheric glow halo first (underneath the point)
-        if (s.bright && s.glowR > 0) {
-          const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.glowR)
-          grd.addColorStop(0,   `rgba(200,220,255,${(alpha * 0.55).toFixed(3)})`)
-          grd.addColorStop(0.4, `rgba(180,210,255,${(alpha * 0.18).toFixed(3)})`)
-          grd.addColorStop(1,   'rgba(160,200,255,0)')
-          ctx.beginPath()
-          ctx.arc(s.x, s.y, s.glowR, 0, Math.PI * 2)
-          ctx.fillStyle = grd
-          ctx.fill()
+        const dx = b.x - mouseX
+        const dy = b.y - mouseY
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        if (dist < REPEL_DIST) {
+          const force = (1 - dist / REPEL_DIST) * 0.6
+          b.vx += (dx / (dist || 1)) * force
+          b.vy += (dy / (dist || 1)) * force
         }
 
-        // Star point
+        // gentle speed cap so repelled balls settle back down
+        const speed = Math.sqrt(b.vx * b.vx + b.vy * b.vy)
+        const maxSpeed = 2.2
+        if (speed > maxSpeed) {
+          b.vx = (b.vx / speed) * maxSpeed
+          b.vy = (b.vy / speed) * maxSpeed
+        }
+        b.vx *= 0.985
+        b.vy *= 0.985
+
+        if (b.x < -b.r) b.x = canvas.width + b.r
+        if (b.x > canvas.width + b.r) b.x = -b.r
+        if (b.y < -b.r) b.y = canvas.height + b.r
+        if (b.y > canvas.height + b.r) b.y = -b.r
+
         ctx.beginPath()
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(3)})`
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2)
+        ctx.fillStyle = b.color
+        ctx.filter = 'blur(30px)'
         ctx.fill()
       }
-
-      // ── spawn & draw shooting stars ──
-      if (frame >= nextShoot) {
-        spawnShooter()
-        nextShoot = frame + 200 + Math.random() * 340   // ~3–9 s at 60 fps
-      }
-      shooters = shooters.filter(s => s.life > 0)
-      for (const s of shooters) {
-        const elapsed = s.maxLife - s.life
-        const hx = s.x + s.dx * s.speed * elapsed
-        const hy = s.y + s.dy * s.speed * elapsed
-        const tx = hx - s.dx * s.tailLen
-        const ty = hy - s.dy * s.tailLen
-        const op = s.life / s.maxLife
-
-        const grad = ctx.createLinearGradient(tx, ty, hx, hy)
-        grad.addColorStop(0, 'rgba(255,255,255,0)')
-        grad.addColorStop(0.7, `rgba(200,220,255,${(op * 0.7).toFixed(3)})`)
-        grad.addColorStop(1,   `rgba(255,255,255,${op.toFixed(3)})`)
-
-        ctx.beginPath()
-        ctx.moveTo(tx, ty)
-        ctx.lineTo(hx, hy)
-        ctx.strokeStyle = grad
-        ctx.lineWidth = 1.5
-        ctx.stroke()
-        s.life--
-      }
-
-      // ── move & draw constellation network ──
-      for (const p of particles) {
-        p.x += p.vx; p.y += p.vy
-        if (p.x < 0 || p.x > canvas.width)  p.vx *= -1
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1
-      }
-
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x
-          const dy = particles[i].y - particles[j].y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < MAX_DIST) {
-            const alpha = (1 - dist / MAX_DIST) * 0.07
-            ctx.strokeStyle = `rgba(${PR},${PG},${PB},${alpha})`
-            ctx.lineWidth = 0.5
-            ctx.beginPath()
-            ctx.moveTo(particles[i].x, particles[i].y)
-            ctx.lineTo(particles[j].x, particles[j].y)
-            ctx.stroke()
-          }
-        }
-        const mdx = particles[i].x - mouseX
-        const mdy = particles[i].y - mouseY
-        const mdist = Math.sqrt(mdx * mdx + mdy * mdy)
-        if (mdist < MOUSE_DIST) {
-          const alpha = (1 - mdist / MOUSE_DIST) * 0.38
-          ctx.strokeStyle = `rgba(200,225,255,${alpha})`
-          ctx.lineWidth = 0.9
-          ctx.beginPath()
-          ctx.moveTo(particles[i].x, particles[i].y)
-          ctx.lineTo(mouseX, mouseY)
-          ctx.stroke()
-        }
-      }
-
-      for (const p of particles) {
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${PR},${PG},${PB},0.32)`
-        ctx.fill()
-      }
+      ctx.filter = 'none'
 
       raf = requestAnimationFrame(draw)
     }
-
     draw()
 
     return () => {
       cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
-      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mousemove', onMove)
     }
   }, [])
 
   return (
     <>
-      <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" aria-hidden="true" />
+      {/* Dot-grid paper texture */}
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(rgba(23,19,16,0.14) 1.5px, transparent 1.5px)',
+          backgroundSize: '28px 28px',
+        }}
+        aria-hidden="true"
+      />
 
-      {/* Deep purple nebula — top-left */}
+      {/* Ambient gummy balls */}
+      <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none opacity-70" aria-hidden="true" />
+
+      {/* Violet blob — top-left */}
       <motion.div
         className="fixed pointer-events-none z-0"
         style={{
-          top: '-20%', left: '-10%',
-          width: 700, height: 700,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(100,60,200,0.14) 0%, rgba(80,40,180,0.05) 40%, transparent 70%)',
-          filter: 'blur(70px)',
+          top: '-15%', left: '-8%',
+          width: 620, height: 620,
+          borderRadius: '42% 58% 65% 35% / 45% 40% 60% 55%',
+          background: 'radial-gradient(circle, rgba(108,92,231,0.16) 0%, rgba(108,92,231,0.04) 45%, transparent 70%)',
+          filter: 'blur(50px)',
           x: blob1X,
           y: blob1Y,
         }}
       />
 
-      {/* Deep blue nebula — bottom-right */}
+      {/* Coral blob — bottom-right */}
       <motion.div
         className="fixed pointer-events-none z-0"
         style={{
-          bottom: '-15%', right: '-10%',
-          width: 620, height: 620,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(40,90,255,0.11) 0%, rgba(20,60,200,0.04) 40%, transparent 70%)',
-          filter: 'blur(70px)',
+          bottom: '-12%', right: '-8%',
+          width: 560, height: 560,
+          borderRadius: '58% 42% 38% 62% / 55% 60% 40% 45%',
+          background: 'radial-gradient(circle, rgba(255,107,87,0.14) 0%, rgba(255,107,87,0.03) 45%, transparent 70%)',
+          filter: 'blur(50px)',
           x: blob2X,
           y: blob2Y,
         }}
       />
 
-      {/* Vignette */}
-      <div
-        className="fixed inset-0 z-0 pointer-events-none"
+      {/* Sunshine blob — mid right */}
+      <motion.div
+        className="fixed pointer-events-none z-0 hidden md:block"
         style={{
-          background: 'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 35%, rgba(3,4,14,0.7) 100%)',
+          top: '35%', right: '15%',
+          width: 340, height: 340,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,194,60,0.14) 0%, transparent 70%)',
+          filter: 'blur(40px)',
+          x: blob3X,
+          y: blob3Y,
         }}
       />
 

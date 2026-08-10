@@ -1,14 +1,16 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useState } from 'react'
 import { motion, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
 import { useTextScramble } from '../hooks/useTextScramble'
 import { useTypewriter } from '../hooks/useTypewriter'
+import { unlockAchievement } from '../lib/achievements'
+import { burstConfetti } from '../lib/confetti'
 
 const ROLES = [
-  'Full-Stack Developer',       // technical baseline
-  'AI-Native Engineer',         // AI-first identity
-  'Product-Minded Builder',     // product angle
-  'Perpetual Learner',          // learning/growth (from resume summary)
-  'Idea → Production',          // end-to-end ownership
+  'Full-Stack Developer',
+  'AI-Native Engineer',
+  'Product-Minded Builder',
+  'Perpetual Learner',
+  'Idea → Production',
 ]
 
 const containerVariants = {
@@ -22,9 +24,10 @@ const itemVariants = {
 }
 
 function MagneticButton({
-  href, children, primary, target,
+  href, children, primary, target, onClick,
 }: {
   href: string; children: React.ReactNode; primary?: boolean; target?: string
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
 }) {
   const ref = useRef<HTMLAnchorElement>(null)
   const x = useMotionValue(0)
@@ -46,13 +49,14 @@ function MagneticButton({
       target={target}
       rel={target === '_blank' ? 'noopener noreferrer' : undefined}
       style={{ x: springX, y: springY }}
-      whileTap={{ scale: 0.96 }}
+      whileTap={{ scale: 0.94, translate: '2px 2px' }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      onClick={onClick}
       className={
         primary
-          ? 'px-7 py-3.5 bg-accent hover:bg-accent-hover text-background rounded-xl font-bold text-sm glow-accent-sm transition-colors duration-200 inline-block tracking-wide'
-          : 'btn-outline-gradient px-7 py-3.5 text-text-2 hover:text-text-1 rounded-xl font-semibold text-sm transition-colors duration-200 inline-block'
+          ? 'sticker-btn px-7 py-3.5 bg-accent hover:bg-accent-hover text-white rounded-2xl font-bold text-sm transition-colors duration-200 inline-block tracking-wide'
+          : 'sticker-btn px-7 py-3.5 bg-surface text-text-1 hover:bg-surface-2 rounded-2xl font-bold text-sm transition-colors duration-200 inline-block tracking-wide'
       }
     >
       {children}
@@ -60,97 +64,103 @@ function MagneticButton({
   )
 }
 
+/** A single letter you can grab and fling — springs back to its spot on release. */
+function DraggableLetter({ char, gradient }: { char: string; gradient?: boolean }) {
+  const [grabbed, setGrabbed] = useState(false)
+
+  if (char === ' ') return <span className="inline-block w-[0.3em]" />
+
+  return (
+    <motion.span
+      className={`inline-block cursor-grab active:cursor-grabbing select-none ${gradient ? 'text-gradient' : ''}`}
+      drag
+      dragSnapToOrigin
+      dragElastic={0.15}
+      dragTransition={{ bounceStiffness: 340, bounceDamping: 18 }}
+      whileDrag={{ scale: 1.3, zIndex: 50 }}
+      whileHover={{ y: -6, rotate: -4 }}
+      onDragStart={() => {
+        if (!grabbed) {
+          setGrabbed(true)
+          unlockAchievement({
+            id: 'dragged-name',
+            emoji: '🫳',
+            title: 'Fidgety!',
+            message: 'You found out the name is draggable.',
+          })
+        }
+      }}
+      style={{ touchAction: 'none' }}
+    >
+      {char}
+    </motion.span>
+  )
+}
+
+/** A small floating doodle you can also grab and toss — pure desk-toy delight. */
+function DeskToy({
+  children, top, left, right, bottom, duration, className = '',
+}: {
+  children: React.ReactNode
+  top?: string; left?: string; right?: string; bottom?: string
+  duration: number
+  className?: string
+}) {
+  return (
+    <motion.div
+      className={`absolute pointer-events-auto cursor-grab active:cursor-grabbing select-none float-bob hidden sm:block ${className}`}
+      style={{ top, left, right, bottom, touchAction: 'none', ['--bob-dur' as any]: `${duration}s` } as React.CSSProperties}
+      drag
+      dragSnapToOrigin
+      dragElastic={0.2}
+      whileDrag={{ scale: 1.25, zIndex: 50 }}
+      whileHover={{ scale: 1.12 }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+const StarDoodle = () => (
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+    <path d="M20 3l3.6 11.4L35 18l-11.4 3.6L20 33l-3.6-11.4L5 18l11.4-3.6L20 3z" fill="#ffc23c" stroke="#171310" strokeWidth="2.5" strokeLinejoin="round" />
+  </svg>
+)
+const BoltDoodle = () => (
+  <svg width="34" height="42" viewBox="0 0 34 42" fill="none">
+    <path d="M20 2L4 24h11l-3 16 18-24H19l1-14z" fill="#ff6b57" stroke="#171310" strokeWidth="2.5" strokeLinejoin="round" />
+  </svg>
+)
+const SquiggleDoodle = () => (
+  <svg width="52" height="28" viewBox="0 0 52 28" fill="none">
+    <path d="M3 20c5-14 10-14 15 0s10 14 15 0 10-14 15 0" stroke="#6c5ce7" strokeWidth="4" strokeLinecap="round" fill="none" />
+  </svg>
+)
+const CircleScribbleDoodle = () => (
+  <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
+    <circle cx="19" cy="19" r="14" fill="#06d6a0" stroke="#171310" strokeWidth="2.5" />
+  </svg>
+)
+
 export default function Hero() {
   const scrambledName = useTextScramble('Shai Aviv', 400)
   const { text: role } = useTypewriter(ROLES, { initialDelay: 1600 })
   const sectionRef = useRef<HTMLElement>(null)
 
-  // Scroll-driven parallax — each layer moves at a different rate,
-  // creating the illusion of depth as the user scrolls away
   const { scrollY } = useScroll()
-  const badgeY    = useTransform(scrollY, [0, 600], [0, -18])
-  const nameY     = useTransform(scrollY, [0, 600], [0, -75])
-  const taglineY  = useTransform(scrollY, [0, 600], [0, -55])
-  const bioY      = useTransform(scrollY, [0, 600], [0, -38])
-  const ctaY      = useTransform(scrollY, [0, 600], [0, -22])
   const heroOpacity = useTransform(scrollY, [0, 520], [1, 0])
-  const heroScale   = useTransform(scrollY, [0, 600], [1, 0.96])
-
-  // Mouse-driven 2D parallax — three decorative depth planes.
-  // Moving elements in OPPOSITE directions from the same mouse input
-  // creates genuine stereoscopic depth that scroll-only parallax can't.
-  const mouseX = useMotionValue(0)
-  const mouseY = useMotionValue(0)
-  const smoothX = useSpring(mouseX, { stiffness: 60, damping: 20 })
-  const smoothY = useSpring(mouseY, { stiffness: 60, damping: 20 })
-
-  // Far plane: dot grid — moves opposite to near elements (depth illusion)
-  const dotX = useTransform(smoothX, [-0.5, 0.5], [20, -20])
-  const dotY = useTransform(smoothY, [-0.5, 0.5], [12, -12])
-  // Mid plane: rotating dashed ring — moderate movement
-  const ringX = useTransform(smoothX, [-0.5, 0.5], [-15, 15])
-  const ringY = useTransform(smoothY, [-0.5, 0.5], [-10, 10])
-  // Near plane: gradient orb — moves most (feels closest to camera)
-  const orbX = useTransform(smoothX, [-0.5, 0.5], [-30, 30])
-  const orbY = useTransform(smoothY, [-0.5, 0.5], [-20, 20])
-
-  useEffect(() => {
-    const section = sectionRef.current
-    if (!section) return
-
-    const handleMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX / window.innerWidth - 0.5)
-      mouseY.set(e.clientY / window.innerHeight - 0.5)
-    }
-    const handleLeave = () => {
-      mouseX.set(0)
-      mouseY.set(0)
-    }
-
-    window.addEventListener('mousemove', handleMove, { passive: true })
-    section.addEventListener('mouseleave', handleLeave)
-    return () => {
-      window.removeEventListener('mousemove', handleMove)
-      section.removeEventListener('mouseleave', handleLeave)
-    }
-  }, [mouseX, mouseY])
+  const heroScale   = useTransform(scrollY, [0, 600], [1, 0.97])
 
   return (
     <motion.section
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ref={sectionRef as any}
-      className="min-h-screen flex items-center justify-center px-6 pt-20 relative overflow-hidden"
+      ref={sectionRef}
+      className="min-h-screen flex items-center justify-center px-6 pt-24 pb-12 relative"
       style={{ opacity: heroOpacity, scale: heroScale }}
     >
-      {/* Gradient orb — near parallax plane (tracks mouse most aggressively) */}
-      <motion.div
-        className="absolute pointer-events-none"
-        style={{ right: '-5%', top: '0%', x: orbX, y: orbY }}
-        aria-hidden="true"
-      >
-        <div style={{
-          width: 700,
-          height: 700,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(0,229,160,0.13) 0%, rgba(0,184,212,0.06) 40%, transparent 65%)',
-          filter: 'blur(90px)',
-        }} />
-      </motion.div>
-
-      {/* Dashed rotating ring — mid parallax plane */}
-      <motion.div
-        className="absolute pointer-events-none hidden md:block"
-        style={{ right: '8%', top: '15%', x: ringX, y: ringY }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 45, repeat: Infinity, ease: 'linear' }}
-        aria-hidden="true"
-      >
-        <svg width="260" height="260" viewBox="0 0 260 260" fill="none">
-          <circle cx="130" cy="130" r="129" stroke="rgba(0,229,160,0.07)" strokeWidth="1" strokeDasharray="3 9" />
-          <circle cx="130" cy="130" r="86" stroke="rgba(0,184,212,0.05)" strokeWidth="1" strokeDasharray="2 13" />
-        </svg>
-      </motion.div>
-
+      <DeskToy top="18%" left="6%" duration={5.5}><StarDoodle /></DeskToy>
+      <DeskToy top="12%" right="10%" duration={4.5} className="rotate-12"><BoltDoodle /></DeskToy>
+      <DeskToy bottom="22%" left="10%" duration={6} className="-rotate-6"><SquiggleDoodle /></DeskToy>
+      <DeskToy bottom="14%" right="8%" duration={5} ><CircleScribbleDoodle /></DeskToy>
 
       <motion.div
         className="max-w-5xl w-full relative z-10"
@@ -158,41 +168,35 @@ export default function Hero() {
         initial="hidden"
         animate="visible"
       >
-        {/* Badge — fastest parallax layer (closest) */}
-        <motion.div variants={itemVariants} style={{ y: badgeY }} className="mb-8">
-          <span className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-mono font-medium text-accent bg-accent/10 border border-accent/20">
+        {/* Badge */}
+        <motion.div variants={itemVariants} className="mb-8">
+          <span className="chip inline-flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-mono font-bold text-text-1 bg-surface">
             <span className="relative flex h-2 w-2">
-              <span className="pulse-ring absolute inline-flex h-full w-full rounded-full bg-accent opacity-60" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
+              <span className="pulse-ring absolute inline-flex h-full w-full rounded-full bg-cyan opacity-70" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan" />
             </span>
             Available for new opportunities
           </span>
         </motion.div>
 
-        {/* Name — large, moves most (feels closest) */}
-        <motion.div variants={itemVariants} style={{ y: nameY }}>
+        {/* Name — every character is draggable */}
+        <motion.div variants={itemVariants}>
           <h1
-            className="font-black tracking-tight leading-none mb-3 font-mono"
+            className="font-display font-bold tracking-tight leading-none mb-3"
             style={{ fontSize: 'clamp(3rem, 9.5vw, 7rem)' }}
             aria-label="Shai Aviv"
           >
             {scrambledName.map((char, i) => (
-              <span
-                key={i}
-                className="inline-block text-gradient"
-                style={{ display: char === ' ' ? 'inline' : 'inline-block' }}
-              >
-                {char === ' ' ? '\u00A0' : char}
-              </span>
+              <DraggableLetter key={i} char={char} gradient />
             ))}
             <span className="text-accent">.</span>
           </h1>
         </motion.div>
 
         {/* Typewriter role */}
-        <motion.div variants={itemVariants} style={{ y: taglineY }} className="mb-4 h-10 flex items-center">
-          <span className="text-xl sm:text-2xl font-semibold text-text-2 tracking-tight font-mono">
-            {role || '\u00A0'}
+        <motion.div variants={itemVariants} className="mb-4 h-10 flex items-center">
+          <span className="text-xl sm:text-2xl font-bold text-text-2 tracking-tight font-mono">
+            {role || ' '}
             <span className={`ml-0.5 text-accent cursor-blink ${role ? '' : 'opacity-0'}`}>|</span>
           </span>
         </motion.div>
@@ -200,42 +204,52 @@ export default function Hero() {
         {/* Bio */}
         <motion.p
           variants={itemVariants}
-          style={{ y: bioY }}
-          className="text-muted text-lg max-w-lg mb-10 leading-relaxed"
+          className="text-text-2 text-lg max-w-lg mb-10 leading-relaxed font-medium"
         >
           AI-native software engineer with a product mindset, driven to learn,
-          build end-to-end, and ship.
+          build end-to-end, and ship. <span className="text-text-1 font-bold">Yes, you can drag my name around.</span>
         </motion.p>
 
         {/* Stats */}
-        <motion.div variants={itemVariants} style={{ y: ctaY }} className="flex flex-wrap gap-8 mb-10">
+        <motion.div variants={itemVariants} className="flex flex-wrap gap-4 mb-10">
           {[
-            { value: '87.5', label: 'University GPA' },
-            { value: 'BIU', label: 'Bar-Ilan University' },
+            { value: '87.5', label: 'University GPA', color: 'bg-accent-dim' },
+            { value: 'BIU', label: 'Bar-Ilan University', color: 'bg-accent-dim' },
           ].map(({ value, label }) => (
-            <div key={label} className="flex flex-col gap-1">
-              <span className="text-3xl font-black font-mono text-accent leading-none">{value}</span>
-              <span className="text-xs text-muted font-mono tracking-widest uppercase">{label}</span>
+            <div key={label} className="chip rounded-2xl px-4 py-2.5 bg-surface flex flex-col gap-0.5">
+              <span className="text-2xl font-display font-bold text-accent leading-none">{value}</span>
+              <span className="text-[0.65rem] text-text-2 font-mono tracking-widest uppercase">{label}</span>
             </div>
           ))}
         </motion.div>
 
         {/* CTAs */}
-        <motion.div variants={itemVariants} style={{ y: ctaY }} className="flex flex-wrap gap-4 mb-16">
-          <MagneticButton href="#projects" primary>View my projects →</MagneticButton>
+        <motion.div variants={itemVariants} className="flex flex-wrap gap-4 mb-16">
+          <MagneticButton
+            href="#projects"
+            primary
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect()
+              burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 40)
+            }}
+          >
+            View my projects →
+          </MagneticButton>
           <MagneticButton href="#contact">Get in touch</MagneticButton>
           <MagneticButton href="/resume.pdf" target="_blank">View Resume</MagneticButton>
         </motion.div>
 
         {/* Scroll indicator */}
-        <motion.div variants={itemVariants} style={{ y: ctaY }} className="flex items-center gap-3">
-          <div className="w-px h-12 overflow-hidden">
-            <div
-              className="w-full h-full scroll-indicator-line"
-              style={{ background: 'linear-gradient(to bottom, #00e5a0, #00b8d4)' }}
-            />
-          </div>
-          <span className="font-mono text-xs text-muted tracking-[0.2em] uppercase">Scroll</span>
+        <motion.div variants={itemVariants} className="flex items-center gap-3">
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M9 2v13M3 9l6 6 6-6" stroke="#ff6b57" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </motion.div>
+          <span className="font-mono text-xs text-text-2 tracking-[0.2em] uppercase font-bold">Scroll (or drag stuff)</span>
         </motion.div>
       </motion.div>
     </motion.section>
