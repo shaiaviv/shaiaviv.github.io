@@ -23,8 +23,8 @@
  * animations that merely look alike — an eased ring drifts out of step with
  * linear `distance / speed` delays, and the pops stop landing on the light.
  */
-const WAVE_MS = 2200
-const POP_MS = 520
+const WAVE_MS = 1600
+const POP_MS = 480
 
 /** Where the bright band sits within the ring element, as a fraction of its radius. */
 const BAND_AT = 0.67
