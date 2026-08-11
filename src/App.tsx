@@ -14,7 +14,8 @@ import UnlockBanners from './components/UnlockBanners'
 import { unlockAchievement, ACHIEVEMENTS } from './lib/achievements'
 import { isUnlocked } from './lib/unlocks'
 import { dropEverything } from './lib/gravity'
-import { installConsoleEgg, flashXray } from './lib/xray'
+import { installConsoleEgg } from './lib/consoleEgg'
+import { eggStorm } from './lib/eggstorm'
 import { burstConfetti } from './lib/confetti'
 
 const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']
@@ -117,7 +118,7 @@ export default function App() {
   // what has to be waiting there when a visitor works it out.
   useEffect(() => {
     installConsoleEgg(() => {
-      flashXray()
+      eggStorm()
       unlockAchievement(ACHIEVEMENTS.consoleHi)
     })
   }, [])

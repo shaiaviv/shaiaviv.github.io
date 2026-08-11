@@ -55,13 +55,13 @@ Ten tracked eggs plus a discovery chain. Everything is **session-only** — a re
 | Egg | Trigger |
 |---|---|
 | 🫳 Fidgety | drag anything (wired via `lib/dragProps.ts`) |
-| 💃 Meta easter egg | click the hero sentence about easter eggs |
+| 💃 Meta easter egg | click the hero sentence about easter eggs — shockwave |
 | 🎉 Konami Code | ↑↑↓↓←→←→BA — page flips to its negative, again to flip back |
 | 🕹️ Game on | start the playable Arkanoid in its card |
 | 🫧 Pop | click a background blob dead-on |
 | 🖍️ Domino run | draw on the backdrop and release |
 | 🔖 Flip side | click the About polaroid → handwritten riddle |
-| 🩻 X-ray vision | call `hiShai()` in the console |
+| 🥚 Infestation | call `hiShai()` in the console |
 | 💫 Shape shifter | draw a recognised closed shape — **gated** |
 | 🪐 Gravity | type `gravity` — **gated** |
 
@@ -88,11 +88,46 @@ The full chain: polaroid riddle → answer is "the console" → the console gree
 - `.keep-color` (in `index.css`) pre-inverts the portrait and every product screenshot so the global layer inverts them a second time, back to true colour. **Add it to any screenshot added later.** It is scoped to a single active layer, since during the restore sweep the page already reads true.
 - **The lightbox must NOT get `.keep-color`.** It is portalled to `document.body`, so it paints above the negative already; adding the class would invert those screenshots rather than protect them.
 
-### X-ray (`lib/xray.ts`)
+### Console egg and the egg storm (`lib/consoleEgg.ts`, `lib/eggstorm.ts`)
 
-Prints the console greeting, installs `window.hiShai`, and flashes a wireframe.
+`installConsoleEgg` prints the greeting and installs `window.hiShai`, but owns no
+effect — the caller passes one in, so discovery and payoff stay separable. Today
+the payoff is `eggStorm()`: two dozen eggs rain in on a throwaway canvas,
+ricochet off the walls, the floor and each other, then pop in a staggered
+cascade. Same self-cleaning shape as `lib/confetti.ts`, so it can be fired from
+anywhere including the console. The naive O(n²) collision pass is free at this
+count and is what makes the pile feel alive.
 
-**Its CSS is injected at trigger time and removed after — it must never live in `index.css`.** `.xray-mode *` is a universal selector behind a descendant combinator, which defeats the style engine's fast path: every style recalc walks each element's ancestor chain, and Framer writes inline transforms on dozens of elements per scroll frame. Measured, that dormant rule cost ~6ms/frame and took 88fps down to 56 *while switched off*, because the cost is in matching, not applying.
+Eggs are drawn as bezier paths with the site's ink outline rather than as 🥚
+glyphs, so they belong to the same sticker-book world as the page. Both the apex
+and the base need HORIZONTAL control points or the ends come out sharp and the
+storm reads as falling teardrops.
+
+An earlier version of this egg flashed a wireframe over the page instead, and its
+CSS is worth remembering as a cautionary tale: `.xray-mode *` is a universal
+selector behind a descendant combinator, which defeats the style engine's fast
+path so every recalc walks each element's ancestor chain. With Framer writing
+inline transforms on dozens of elements per scroll frame, that rule cost ~6ms per
+frame and took 88fps down to 56 **while switched off** — the cost is in matching,
+not applying. Don't ship page-wide selectors, even dormant ones.
+
+### Shockwave (`lib/shockwave.ts`)
+
+Clicking the hero's easter-egg sentence detonates a pulse from the click point:
+a visible ring, plus a pop on every object it reaches, each delayed by
+`distance / speed`. That stagger is the whole effect — animate everything at once
+and the page merely twitches.
+
+Two things were measured the hard way. The pops animate **transform only**: a
+first pass also flashed `filter: brightness/saturate`, which cannot be
+composited, and 26 simultaneous filter animations collapsed the page to ~12fps
+(transform-only measures 120fps). And the ring is a tight, saturated band with a
+dark leading edge, not a soft glow — on a cream page with ambient colour blobs a
+bright haze is invisible, so contrast has to come from saturation and darkness.
+
+The target list is curated rather than `*`, and only the OUTERMOST matches pop:
+a card and the chips inside it would otherwise compound transforms, since a child
+inherits its parent's scale.
 
 ### Gravity (`lib/gravity.ts`)
 
@@ -110,7 +145,7 @@ Press and drag on bare backdrop to paint beads of the cursor-swarm colours; rele
 
 ### Layer map
 
-Fixed layers, low to high: content `z-10` (Navbar's `z-50` is capped inside it) · UnlockBanners `9990` · x-ray scanlines `9995` · DoodleTrail canvas and achievement badge `9997` · CursorGlow and the completion card `9998` · negative sweep `9999` · screenshot lightbox `9999` (portalled to `body`, so it paints above the sweep) · confetti canvas `10000`.
+Fixed layers, low to high: content `z-10` (Navbar's `z-50` is capped inside it) · UnlockBanners `9990` · shockwave ring `9996` · DoodleTrail canvas and achievement badge `9997` · CursorGlow and the completion card `9998` · negative sweep `9999` · screenshot lightbox `9999` (portalled to `body`, so it paints above the sweep) · confetti and egg-storm canvases `10000`.
 
 ## Theming
 

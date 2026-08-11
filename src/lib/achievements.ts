@@ -68,9 +68,9 @@ export const ACHIEVEMENTS: Record<string, Achievement> = {
   },
   consoleHi: {
     id: 'console-hi',
-    emoji: '🩻',
-    title: 'X-ray vision!',
-    message: 'You solved the riddle, opened the console, and called hiShai(). Proper developer behaviour.',
+    emoji: '🥚',
+    title: 'Infestation!',
+    message: 'You solved the riddle, opened the console, and called hiShai(). Two dozen eggs later, here we are.',
   },
   shapeShifter: {
     id: 'shape-shifter',

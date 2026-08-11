@@ -4,6 +4,7 @@ import { useTextScramble } from '../hooks/useTextScramble'
 import { useTypewriter } from '../hooks/useTypewriter'
 import { unlockAchievement, ACHIEVEMENTS } from '../lib/achievements'
 import { burstConfetti } from '../lib/confetti'
+import { shockwave } from '../lib/shockwave'
 import { dragBounce, dragWhile, onDragUnlock } from '../lib/dragProps'
 import { useDragSuppressClick } from '../hooks/useDragSuppressClick'
 
@@ -175,16 +176,21 @@ export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null)
   const danceControls = useAnimation()
 
+  /**
+   * The sentence promises hidden things, so clicking it detonates the page: a
+   * pulse leaves the exact word that was clicked and every object it reaches
+   * pops in turn. The sentence punches first, a beat ahead of the wave, so the
+   * blast visibly originates from the click rather than merely appearing around
+   * it. No confetti — four other eggs already use it.
+   */
   const handleDance = (e: React.MouseEvent<HTMLSpanElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 45)
     unlockAchievement(ACHIEVEMENTS.metaSentence)
     danceControls.start({
-      rotate: [0, -6, 6, -8, 8, -5, 5, -2, 2, 0],
-      y: [0, -10, 0, -8, 0, -5, 0, -2, 0],
-      scale: [1, 1.06, 0.97, 1.05, 0.98, 1.03, 1],
-      transition: { duration: 0.9, ease: 'easeInOut' },
+      scale: [1, 1.14, 0.98, 1],
+      rotate: [0, -2.5, 1.5, 0],
+      transition: { duration: 0.42, ease: [0.34, 1.56, 0.64, 1] },
     })
+    shockwave(e.clientX, e.clientY)
   }
 
   const { scrollY } = useScroll()
