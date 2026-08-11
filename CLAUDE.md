@@ -118,6 +118,13 @@ a visible ring, plus a pop on every object it reaches, each delayed by
 `distance / speed`. That stagger is the whole effect — animate everything at once
 and the page merely twitches.
 
+`WAVE_MS` is the knob (as `REST_MS` is for gravity): how long the front takes to
+reach the furthest corner. Speed is derived from it per invocation, so the blast
+lasts the same time wherever it is set off, and the ring scales LINEARLY to the
+same radius over the same duration. That keeps the band and the pop trigger as
+one wavefront — an eased ring drifts out of step with linear delays and the pops
+stop landing on the light.
+
 Two things were measured the hard way. The pops animate **transform only**: a
 first pass also flashed `filter: brightness/saturate`, which cannot be
 composited, and 26 simultaneous filter animations collapsed the page to ~12fps
