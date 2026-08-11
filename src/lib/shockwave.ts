@@ -60,6 +60,19 @@ function outermost(els: HTMLElement[]): HTMLElement[] {
   })
 }
 
+/**
+ * A point to detonate from when there is no click to detonate from — the console
+ * egg has no cursor position. Kept inside the middle 60% of the viewport rather
+ * than fully random, so the wave always has room to travel outward in every
+ * direction and reads as a ring instead of a corner sweep.
+ */
+export function randomOrigin(): [number, number] {
+  return [
+    window.innerWidth * (0.2 + Math.random() * 0.6),
+    window.innerHeight * (0.2 + Math.random() * 0.6),
+  ]
+}
+
 export function shockwave(originX: number, originY: number) {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 

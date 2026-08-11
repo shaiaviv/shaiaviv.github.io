@@ -15,7 +15,7 @@ import { unlockAchievement, ACHIEVEMENTS } from './lib/achievements'
 import { isUnlocked } from './lib/unlocks'
 import { dropEverything } from './lib/gravity'
 import { installConsoleEgg } from './lib/consoleEgg'
-import { eggStorm } from './lib/eggstorm'
+import { shockwave, randomOrigin } from './lib/shockwave'
 import { burstConfetti } from './lib/confetti'
 
 const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']
@@ -118,7 +118,7 @@ export default function App() {
   // what has to be waiting there when a visitor works it out.
   useEffect(() => {
     installConsoleEgg(() => {
-      eggStorm()
+      shockwave(...randomOrigin())
       unlockAchievement(ACHIEVEMENTS.consoleHi)
     })
   }, [])

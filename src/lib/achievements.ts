@@ -34,7 +34,7 @@ export const ACHIEVEMENTS: Record<string, Achievement> = {
     id: 'easter-egg-sentence',
     emoji: '💃',
     title: 'Meta easter egg!',
-    message: 'You clicked the sentence about easter eggs. Very on brand.',
+    message: 'You clicked the sentence about easter eggs and it laid two dozen of them. Very on brand.',
   },
   konami: {
     id: 'konami',
@@ -68,9 +68,9 @@ export const ACHIEVEMENTS: Record<string, Achievement> = {
   },
   consoleHi: {
     id: 'console-hi',
-    emoji: '🥚',
-    title: 'Infestation!',
-    message: 'You solved the riddle, opened the console, and called hiShai(). Two dozen eggs later, here we are.',
+    emoji: '💥',
+    title: 'Detonation!',
+    message: 'You solved the riddle, opened the console, and called hiShai() — which set off a shockwave under the whole page.',
   },
   shapeShifter: {
     id: 'shape-shifter',

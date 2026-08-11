@@ -55,13 +55,13 @@ Ten tracked eggs plus a discovery chain. Everything is **session-only** — a re
 | Egg | Trigger |
 |---|---|
 | 🫳 Fidgety | drag anything (wired via `lib/dragProps.ts`) |
-| 💃 Meta easter egg | click the hero sentence about easter eggs — shockwave |
+| 💃 Meta easter egg | click the hero sentence about easter eggs → egg storm |
 | 🎉 Konami Code | ↑↑↓↓←→←→BA — page flips to its negative, again to flip back |
 | 🕹️ Game on | start the playable Arkanoid in its card |
 | 🫧 Pop | click a background blob dead-on |
 | 🖍️ Domino run | draw on the backdrop and release |
 | 🔖 Flip side | click the About polaroid → handwritten riddle |
-| 🥚 Infestation | call `hiShai()` in the console |
+| 💥 Detonation | call `hiShai()` in the console → shockwave from a random point |
 | 💫 Shape shifter | draw a recognised closed shape — **gated** |
 | 🪐 Gravity | type `gravity` — **gated** |
 
@@ -88,15 +88,19 @@ The full chain: polaroid riddle → answer is "the console" → the console gree
 - `.keep-color` (in `index.css`) pre-inverts the portrait and every product screenshot so the global layer inverts them a second time, back to true colour. **Add it to any screenshot added later.** It is scoped to a single active layer, since during the restore sweep the page already reads true.
 - **The lightbox must NOT get `.keep-color`.** It is portalled to `document.body`, so it paints above the negative already; adding the class would invert those screenshots rather than protect them.
 
-### Console egg and the egg storm (`lib/consoleEgg.ts`, `lib/eggstorm.ts`)
+### The console egg, and the egg storm (`lib/consoleEgg.ts`, `lib/eggstorm.ts`)
 
 `installConsoleEgg` prints the greeting and installs `window.hiShai`, but owns no
-effect — the caller passes one in, so discovery and payoff stay separable. Today
-the payoff is `eggStorm()`: two dozen eggs rain in on a throwaway canvas,
-ricochet off the walls, the floor and each other, then pop in a staggered
-cascade. Same self-cleaning shape as `lib/confetti.ts`, so it can be fired from
-anywhere including the console. The naive O(n²) collision pass is free at this
-count and is what makes the pile feel alive.
+effect — the caller passes one in, so discovery and payoff stay separable, and the
+two payoffs have already been swapped between triggers once. Today `hiShai()`
+fires the shockwave from `randomOrigin()`, since the console has no cursor
+position to detonate from.
+
+`eggStorm()` — currently the hero sentence's payoff — rains two dozen eggs onto a
+throwaway canvas to ricochet off the walls, the floor and each other before
+popping in a staggered cascade. Same self-cleaning shape as `lib/confetti.ts`, so
+it can be fired from anywhere including the console. The naive O(n²) collision
+pass is free at this count and is what makes the pile feel alive.
 
 Eggs are drawn as bezier paths with the site's ink outline rather than as 🥚
 glyphs, so they belong to the same sticker-book world as the page. Both the apex
@@ -113,9 +117,8 @@ not applying. Don't ship page-wide selectors, even dormant ones.
 
 ### Shockwave (`lib/shockwave.ts`)
 
-Clicking the hero's easter-egg sentence detonates a pulse from the click point:
-a visible ring, plus a pop on every object it reaches, each delayed by
-`distance / speed`. That stagger is the whole effect — animate everything at once
+A pulse from a point — currently `hiShai()`, from a random spot: a visible ring,
+plus a pop on every object it reaches, each delayed by `distance / speed`. That stagger is the whole effect — animate everything at once
 and the page merely twitches.
 
 `WAVE_MS` is the knob (as `REST_MS` is for gravity): how long the front takes to

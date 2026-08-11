@@ -4,7 +4,7 @@ import { useTextScramble } from '../hooks/useTextScramble'
 import { useTypewriter } from '../hooks/useTypewriter'
 import { unlockAchievement, ACHIEVEMENTS } from '../lib/achievements'
 import { burstConfetti } from '../lib/confetti'
-import { shockwave } from '../lib/shockwave'
+import { eggStorm } from '../lib/eggstorm'
 import { dragBounce, dragWhile, onDragUnlock } from '../lib/dragProps'
 import { useDragSuppressClick } from '../hooks/useDragSuppressClick'
 
@@ -177,20 +177,19 @@ export default function Hero() {
   const danceControls = useAnimation()
 
   /**
-   * The sentence promises hidden things, so clicking it detonates the page: a
-   * pulse leaves the exact word that was clicked and every object it reaches
-   * pops in turn. The sentence punches first, a beat ahead of the wave, so the
-   * blast visibly originates from the click rather than merely appearing around
-   * it. No confetti — four other eggs already use it.
+   * A sentence about hidden easter eggs, so clicking it produces literal ones:
+   * two dozen rain in and bounce around the page. The sentence punches on click
+   * too, since the eggs take a beat to fall and the gesture needs an immediate
+   * response. No confetti — other eggs already lean on it.
    */
-  const handleDance = (e: React.MouseEvent<HTMLSpanElement>) => {
+  const handleDance = () => {
     unlockAchievement(ACHIEVEMENTS.metaSentence)
     danceControls.start({
       scale: [1, 1.14, 0.98, 1],
       rotate: [0, -2.5, 1.5, 0],
       transition: { duration: 0.42, ease: [0.34, 1.56, 0.64, 1] },
     })
-    shockwave(e.clientX, e.clientY)
+    eggStorm()
   }
 
   const { scrollY } = useScroll()

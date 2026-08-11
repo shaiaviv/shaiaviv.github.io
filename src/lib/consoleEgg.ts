@@ -29,6 +29,6 @@ export function installConsoleEgg(onCall: () => void) {
   const w = window as unknown as Record<string, unknown>
   w.hiShai = () => {
     onCall()
-    return 'brace yourself 🥚'
+    return 'boom 💥 — watch the page'
   }
 }
