@@ -99,10 +99,17 @@ export const ACHIEVEMENT_EVENT = 'portfolio:achievement'
 export const COMPLETION_EMAIL = 'shaiaviv99@gmail.com'
 export const COMPLETION_CODE = 'Pool Party'
 export const COMPLETION_SUBJECT = 'I found all your easter eggs'
+/*
+ * Ends on a blank line and a bracketed placeholder, so the sender lands on an
+ * obvious cursor position with the pitch already framed rather than facing a
+ * sentence that trails off. encodeURIComponent turns the newlines into %0A,
+ * which mail clients render as real line breaks.
+ */
 export const COMPLETION_BODY =
   'I found all your easter eggs and to prove it here\'s the secret code that only a true easter egg ' +
   `hunter could unlock: "${COMPLETION_CODE}". Now that I\'ve gotten your attention by completing all ` +
-  'easter eggs, I\'d like to see if you\'re interested in the following role:'
+  'easter eggs, I\'d like to see if you\'re interested in the following role:' +
+  '\n\n{Describe your open role here}'
 
 export function completionMailto() {
   const params = `subject=${encodeURIComponent(COMPLETION_SUBJECT)}&body=${encodeURIComponent(COMPLETION_BODY)}`
