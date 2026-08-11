@@ -91,7 +91,7 @@ function DraggableLetter({ char, gradient }: { char: string; gradient?: boolean 
       drag
       dragSnapToOrigin
       dragElastic={0.15}
-      dragTransition={{ bounceStiffness: 340, bounceDamping: 18 }}
+      dragTransition={dragBounce}
       whileDrag={{ scale: 1.3, zIndex: 50 }}
       whileHover={{ y: -6, rotate: -4 }}
       onDragStart={onDragUnlock}
